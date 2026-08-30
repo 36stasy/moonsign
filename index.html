@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>VIDHAYA · расчёт лунного знака</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root{
+    --bg:#F1EBDC; --surface:#FBF7EC; --surface-2:#E7DFCB;
+    --ink:#221B13; --ink-soft:#5B5241; --line:#D7CCB2;
+    --accent:#2E3566; --accent-ink:#2E3566; --accent-soft:#E4E4EE;
+    --gold:#A2762C; --good:#3C7A48; --good-bg:#E4EDDE;
+    --caution:#BC5049; --caution-bg:#F4E2DE;
+    --shadow:0 1px 2px rgba(34,27,19,.06), 0 8px 30px -18px rgba(34,27,19,.28);
+    --moon:#2E3566; --lagna:#A2762C; --sun:#BC5049;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#13162A; --surface:#1B1F37; --surface-2:#252B47;
+      --ink:#E9E2D0; --ink-soft:#A7A18D; --line:#333A5B;
+      --accent:#98A1DC; --accent-ink:#B9BFE9; --accent-soft:#232945;
+      --gold:#D3A257; --good:#6EB27C; --good-bg:#1E2C29;
+      --caution:#E0847B; --caution-bg:#33201F;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px -18px rgba(0,0,0,.6);
+      --moon:#98A1DC; --lagna:#D3A257; --sun:#E0847B;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#13162A; --surface:#1B1F37; --surface-2:#252B47;
+    --ink:#E9E2D0; --ink-soft:#A7A18D; --line:#333A5B;
+    --accent:#98A1DC; --accent-ink:#B9BFE9; --accent-soft:#232945;
+    --gold:#D3A257; --good:#6EB27C; --good-bg:#1E2C29;
+    --caution:#E0847B; --caution-bg:#33201F;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 34px -18px rgba(0,0,0,.6);
+    --moon:#98A1DC; --lagna:#D3A257; --sun:#E0847B;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:'IBM Plex Sans','Segoe UI',system-ui,-apple-system,sans-serif;
+    font-size:17px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--accent);color:var(--surface);}
+
+  .page{max-width:760px;margin:0 auto;padding:0 22px 110px;}
+
+  h1,h2,h3{font-family:'Spectral',Georgia,'Times New Roman',serif;font-weight:600;text-wrap:balance;line-height:1.16;}
+  p{margin:0 0 1em;}
+  strong{font-weight:600;} em{font-style:italic;}
+
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.72rem;font-weight:500;
+    text-transform:uppercase;letter-spacing:.16em;color:var(--gold);margin:0 0 1.1em;}
+
+  header.top{padding:34px 0 6px;}
+  .hero{position:relative;overflow:hidden;border-radius:22px;padding:44px 28px 36px;
+    background:linear-gradient(158deg,#232A52 0%,#161A38 52%,#0E1024 100%);
+    box-shadow:0 20px 60px -28px rgba(20,24,52,.8);}
+  .hero .sky{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  .hero .moon{position:absolute;top:8px;right:2px;width:132px;height:132px;pointer-events:none;}
+  .hero-text{position:relative;z-index:1;padding-right:96px;}
+  .hero .brand{font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.44em;
+    text-transform:uppercase;color:#DEBB7C;margin:0 0 1em;}
+  .hero h1{font-family:'Spectral',serif;font-weight:600;font-size:clamp(2.2rem,9vw,3.3rem);
+    line-height:1.06;margin:0 0 .5em;color:#F7F0DE;max-width:9ch;letter-spacing:.004em;}
+  .hero h1 em{font-style:italic;font-weight:500;color:#EEC98A;}
+  .hero .dek{font-size:1.03rem;line-height:1.62;color:#B7B6C9;max-width:34ch;margin:0;}
+  @media (max-width:560px){
+    .hero{padding:36px 20px 30px;}
+    .hero .moon{width:82px;height:82px;top:14px;right:-4px;}
+    .hero-text{padding-right:44px;}
+    .hero h1{font-size:2.35rem;max-width:8ch;}
+    .hero .dek{padding-right:0;}
+  }
+
+  form{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:22px;box-shadow:var(--shadow);margin:24px 0;}
+  .frow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px;}
+  .frow>div{min-width:0;}
+  @media (max-width:560px){.frow{grid-template-columns:1fr;}}
+  .grid3{display:grid;grid-template-columns:.72fr 1.5fr 1fr;gap:9px;margin-bottom:16px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+  .grid3>div,.grid2>div{min-width:0;}
+  label{display:block;font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;}
+  input,select{width:100%;min-width:0;max-width:100%;font:inherit;font-size:16px;color:var(--ink);
+    background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:12px;line-height:1.2;
+    -webkit-appearance:none;-moz-appearance:none;appearance:none;}
+  select{padding-right:32px;cursor:pointer;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%238a7f6a' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;background-size:11px 7px;}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent);}
+  .citywrap{position:relative;}
+  .drop{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:15;background:var(--surface);
+    border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:260px;overflow-y:auto;display:none;}
+  .drop.show{display:block;}
+  .drop div{padding:9px 12px;cursor:pointer;font-size:.92rem;border-bottom:1px solid var(--line);}
+  .drop div:last-child{border-bottom:none;}
+  .drop div:hover,.drop div.active{background:var(--accent-soft);}
+  .drop div .reg{color:var(--ink-soft);font-size:.8rem;}
+  .check{display:flex;align-items:flex-start;gap:9px;margin:2px 0 14px;font-size:.9rem;color:var(--ink-soft);}
+  .check label{text-transform:none;letter-spacing:0;font-family:inherit;font-size:.9rem;margin:0;color:inherit;}
+  .check input[type=checkbox],.gconsent input[type=checkbox]{
+    -webkit-appearance:auto;appearance:auto;accent-color:var(--accent);
+    width:18px;min-width:18px;max-width:18px;height:18px;padding:0;margin:1px 0 0;flex:none;cursor:pointer;}
+  #manualBox{display:none;margin-top:4px;padding-top:12px;border-top:1px dashed var(--line);}
+  #manualBox.show{display:block;}
+  .manualToggle{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent-ink);
+    background:none;border:none;cursor:pointer;padding:0;margin:2px 0 0;text-decoration:underline;text-underline-offset:3px;}
+  button.go{width:100%;font:inherit;font-weight:600;font-size:1rem;cursor:pointer;
+    background:var(--accent);color:var(--surface);border:0;border-radius:10px;padding:13px;margin-top:6px;}
+  button.go:hover{filter:brightness(1.08);}
+  button.go:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  .hint{font-size:.82rem;color:var(--ink-soft);margin-top:10px;font-style:italic;}
+
+  .teaser{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--moon);
+    border-radius:16px;padding:22px;text-align:center;box-shadow:var(--shadow);margin-bottom:14px;}
+  .teaser .tglyph{font-size:1.9rem;color:var(--gold);line-height:1;}
+  .teaser .tkind{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-soft);margin-top:.5em;}
+  .teaser .tname{font-family:'Spectral',serif;font-size:2rem;font-weight:600;margin:.05em 0;color:var(--ink);}
+  .teaser .tsub{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--ink-soft);margin:0;}
+  .teaser .tdesc{margin:1.1em 0 0;padding-top:1em;border-top:1px solid var(--line);
+    font-size:.96rem;line-height:1.62;color:var(--ink);text-align:left;}
+  .gate{background:var(--accent-soft);border:1px solid var(--accent);border-radius:16px;padding:22px;}
+  .gate .gtitle{font-family:'Spectral',serif;font-size:1.28rem;font-weight:600;margin:0 0 .3em;color:var(--accent-ink);}
+  .gate .gtext{font-size:.93rem;line-height:1.55;color:var(--ink-soft);margin:0 0 1.1em;}
+  .gate form{display:flex;flex-direction:column;gap:10px;}
+  .gconsent{display:flex;align-items:flex-start;gap:8px;font-size:.82rem;line-height:1.45;color:var(--ink-soft);
+    text-transform:none;letter-spacing:0;font-family:inherit;margin:2px 0 2px;}
+  .gconsent a{color:var(--accent-ink);}
+  .gerr{color:var(--caution);font-size:.85rem;margin:0;}
+
+  #out{margin:26px 0;}
+  .res{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:20px 22px;box-shadow:var(--shadow);margin-bottom:14px;border-left:4px solid var(--line);}
+  .res.moon{border-left-color:var(--moon);}
+  .res.lagna{border-left-color:var(--lagna);}
+  .res.sun{border-left-color:var(--sun);}
+  .res .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+  .res .glyph{font-size:1.7rem;line-height:1;}
+  .res .kind{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-soft);}
+  .res h3{margin:.15em 0 0;font-size:1.5rem;}
+  .lead-word{color:var(--gold);font-weight:600;}
+  .res .san{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--ink-soft);}
+  .res .deg{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--accent-ink);
+    font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .res .body{margin:.9em 0 0;font-size:.97rem;}
+  .warn{background:var(--caution-bg);color:var(--caution);border-radius:9px;padding:9px 12px;font-size:.85rem;margin-top:.8em;}
+
+  .divider{display:flex;align-items:center;gap:16px;justify-content:center;margin:52px 0;}
+  .divider::before,.divider::after{content:"";height:1px;width:66px;background:var(--line);}
+  .divider svg{width:24px;height:24px;color:var(--gold);flex:none;}
+
+  .explain h2{font-size:1.35rem;margin:0 0 .9em;}
+  .explain h3{font-family:'IBM Plex Sans',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--gold);margin:2.6em 0 1em;}
+  .explain p{font-size:.98rem;}
+
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0 26px;}
+  @media(max-width:520px){.compare{grid-template-columns:1fr;}}
+  .cmp{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;
+    display:flex;flex-direction:column;box-shadow:var(--shadow);}
+  .cmp.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),var(--shadow);}
+  .cmp .ic{font-size:1.45rem;line-height:1;color:var(--gold);}
+  .cmp .nm{font-family:'Spectral',serif;font-size:1.05rem;font-weight:600;margin-top:.4em;}
+  .cmp .big{font-family:'Spectral',serif;font-size:1.7rem;font-weight:600;color:var(--accent-ink);margin-top:.1em;line-height:1.1;}
+  .cmp .sub{font-family:'IBM Plex Mono',monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:.5em;}
+  .cmp .d{font-size:.88rem;color:var(--ink-soft);line-height:1.5;margin:0;}
+
+  .pull{font-family:'Spectral',serif;font-style:italic;font-size:1.28rem;line-height:1.4;color:var(--ink);
+    border-left:3px solid var(--gold);padding:.1em 0 .1em 18px;margin:28px 0 18px;}
+
+  .sidenote{background:var(--surface-2);border-radius:12px;padding:16px 18px;font-size:.9rem;
+    color:var(--ink-soft);line-height:1.6;margin:22px 0;}
+  .sidenote b{color:var(--ink);}
+
+  .signgrid{display:flex;flex-direction:column;gap:12px;margin:14px 0 0;}
+  .signcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:var(--shadow);}
+  .signcard.primary{border-left:4px solid var(--moon);}
+  .signcard .ic{font-size:1.3rem;color:var(--gold);}
+  .signcard .nm{font-family:'Spectral',serif;font-size:1.15rem;font-weight:600;display:block;margin:.15em 0 .1em;}
+  .signcard .tag{font-family:'IBM Plex Mono',monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft);}
+  .signcard .d{font-size:.92rem;color:var(--ink-soft);line-height:1.55;margin:.7em 0 0;}
+
+  .cta{position:relative;overflow:hidden;border-radius:20px;padding:30px 28px;margin:30px 0;
+    background:linear-gradient(165deg,#232A52 0%,#14182F 60%,#0F1126 100%);
+    box-shadow:0 22px 60px -30px rgba(20,24,52,.85);}
+  .cta .cglow{position:absolute;top:-90px;right:-70px;width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(222,187,124,.28),rgba(222,187,124,0) 70%);pointer-events:none;}
+  .cta .ctaLead{position:relative;font-family:'Spectral',serif;font-size:1.05rem;font-style:italic;
+    color:#E7C489;margin:0 0 1em;}
+  .cta h3{position:relative;margin:0 0 .55em;font-family:'Spectral',serif;font-size:1.4rem;color:#F7F0DE;line-height:1.2;}
+  .cta p{position:relative;margin:0 0 1em;font-size:.96rem;line-height:1.65;color:#C4C2D6;}
+  .cta ul{position:relative;list-style:none;padding:0;margin:0 0 1.3em;}
+  .cta li{position:relative;padding-left:24px;margin:.55em 0;font-size:.95rem;line-height:1.55;color:#DCD9E8;}
+  .cta li::before{content:"";position:absolute;left:2px;top:.62em;width:7px;height:7px;border-radius:50%;background:#DEBB7C;}
+  .cta .proof{position:relative;font-family:'IBM Plex Mono',monospace;font-size:.74rem;letter-spacing:.02em;
+    color:#9997B0;margin:0 0 1.3em;}
+  .cta a.btn{position:relative;display:block;text-align:center;text-decoration:none;
+    background:linear-gradient(180deg,#E7C489,#D2A45F);
+    color:#1A1730;font-weight:700;font-size:1.03rem;padding:16px 22px;border-radius:13px;
+    box-shadow:0 14px 34px -12px rgba(222,187,124,.55);transition:transform .16s ease, box-shadow .16s ease;}
+  .cta a.btn:hover{transform:translateY(-2px);box-shadow:0 20px 44px -12px rgba(222,187,124,.7);}
+  .cta a.btn:focus-visible{outline:2px solid #F7F0DE;outline-offset:3px;}
+  .cta .micro{position:relative;text-align:center;font-size:.79rem;color:#9997B0;margin:.9em 0 0;}
+  .cta .alt{position:relative;text-align:center;font-size:.86rem;margin:.7em 0 0;color:#B7B6C9;}
+  .cta .alt a{color:#B9BFE9;}
+
+  details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 18px;margin:24px 0;}
+  summary{cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-soft);padding:12px 0;}
+  details[open] summary{color:var(--ink);}
+  details .inner{font-size:.9rem;color:var(--ink-soft);padding-bottom:14px;}
+  details ul{padding-left:1.2em;margin:.5em 0;}
+
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+    font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--ink-soft);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+  @media (prefers-reduced-motion:no-preference){
+    header.top>*{animation:rise .55s cubic-bezier(.2,.7,.2,1) backwards;}
+    header.top h1{animation-delay:.04s;} .dek{animation-delay:.1s;}
+    .res{animation:rise .45s cubic-bezier(.2,.7,.2,1) backwards;}
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="top">
+    <div class="hero">
+      <svg class="sky" viewBox="0 0 420 240" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <g fill="#FBF7EC">
+          <circle cx="38" cy="46" r="1.4" opacity=".55"/><circle cx="104" cy="30" r="1" opacity=".4"/>
+          <circle cx="150" cy="70" r="1.1" opacity=".4"/><circle cx="70" cy="120" r="1.3" opacity=".5"/>
+          <circle cx="26" cy="180" r="1" opacity=".4"/><circle cx="120" cy="164" r="1.2" opacity=".45"/>
+          <circle cx="188" cy="150" r="1" opacity=".4"/><circle cx="210" cy="42" r="1.1" opacity=".4"/>
+          <circle cx="264" cy="176" r="1.1" opacity=".45"/><circle cx="330" cy="196" r="1.1" opacity=".5"/>
+          <circle cx="150" cy="210" r="1" opacity=".35"/><circle cx="90" cy="200" r="1" opacity=".35"/>
+        </g>
+      </svg>
+      <svg class="moon" viewBox="0 0 150 150" aria-hidden="true">
+        <defs>
+          <radialGradient id="vglow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#FFF6E0" stop-opacity=".5"/>
+            <stop offset="45%" stop-color="#EAD9A8" stop-opacity=".14"/>
+            <stop offset="100%" stop-color="#EAD9A8" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="vmoon" cx="36%" cy="32%" r="78%">
+            <stop offset="0%" stop-color="#FFF8E8"/>
+            <stop offset="68%" stop-color="#F0DFBB"/>
+            <stop offset="100%" stop-color="#D6BC88"/>
+          </radialGradient>
+        </defs>
+        <circle cx="80" cy="70" r="70" fill="url(#vglow)"/>
+        <circle cx="82" cy="66" r="34" fill="url(#vmoon)"/>
+        <circle cx="98" cy="55" r="31" fill="#171B38"/>
+        <ellipse cx="66" cy="72" rx="5" ry="4.2" fill="#E4D0A4" opacity=".5"/>
+        <ellipse cx="75" cy="85" rx="3.6" ry="3" fill="#E4D0A4" opacity=".42"/>
+        <ellipse cx="60" cy="58" rx="3" ry="2.6" fill="#E4D0A4" opacity=".4"/>
+      </svg>
+      <div class="hero-text">
+        <p class="brand">Vidhaya</p>
+        <h1>Расчёт <em>лунного</em> знака</h1>
+        <p class="dek">Ведическая астрология. Введите город и дату рождения — часовой пояс и летнее время подставятся сами.</p>
+      </div>
+    </div>
+  </header>
+
+  <form id="form" autocomplete="off" novalidate>
+    <label>Дата рождения</label>
+    <div class="grid3">
+      <div><select id="bd_day" aria-label="День"><option value="">День</option></select></div>
+      <div><select id="bd_month" aria-label="Месяц"><option value="">Месяц</option></select></div>
+      <div><select id="bd_year" aria-label="Год"><option value="">Год</option></select></div>
+    </div>
+    <label>Время рождения</label>
+    <div class="grid2">
+      <div><select id="bt_hour" aria-label="Час"><option value="">Час</option></select></div>
+      <div><select id="bt_min" aria-label="Минута"><option value="">Минута</option></select></div>
+    </div>
+    <div class="check">
+      <input type="checkbox" id="noTime">
+      <label for="noTime">Точное время неизвестно — восходящий знак не посчитаем, по Луне предупредим, если она в этот день меняет знак</label>
+    </div>
+    <div style="margin-bottom:14px">
+      <label for="city">Город рождения</label>
+      <div class="citywrap">
+        <input type="text" id="city" placeholder="Начните вводить название…" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="drop">
+        <div class="drop" id="drop" role="listbox"></div>
+      </div>
+      <div id="cityMeta" class="hint" style="margin-top:6px"></div>
+      <button type="button" class="manualToggle" id="manualToggle">Не нашли город? Указать координаты вручную</button>
+    </div>
+    <div id="manualBox">
+      <div class="frow">
+        <div><label for="lat">Широта (°, север +)</label><input type="text" id="lat" inputmode="decimal" placeholder="55.09"></div>
+        <div><label for="lon">Долгота (°, восток +)</label><input type="text" id="lon" inputmode="decimal" placeholder="36.61"></div>
+      </div>
+      <div class="frow">
+        <div><label for="tz">Часовой пояс в момент рождения (UTC)</label><input type="text" id="tz" placeholder="+3"></div>
+        <div></div>
+      </div>
+    </div>
+    <button class="go" type="submit">Рассчитать мой лунный знак</button>
+    <p class="hint" id="formHint">Для восходящего знака нужно точное время: он меняется каждые ~2 часа.</p>
+  </form>
+
+  <div id="out" aria-live="polite"></div>
+
+  <div class="cta" id="ctaBlock" hidden>
+    <div class="cglow"></div>
+    <p class="ctaLead" id="ctaLead"></p>
+    <h3>Знать свой знак — это ключ. Календарь — это дверь.</h3>
+    <p>Календарь Vidhaya — ваш лунный знак на каждый день месяца. Каждое утро вы открываете день и сразу видите:</p>
+    <ul>
+      <li>красный он или зелёный — стоит ли сегодня вообще что-то начинать</li>
+      <li>что можно, а что отложить: деньги, переговоры, поездки, лечение, крупные покупки</li>
+      <li>в какие часы дня действовать, а в какие — лучше подождать</li>
+      <li>прогноз на неделю по каждой сфере — деньги, работа, отношения, здоровье — отдельно для вашего знака, в закрытом канале</li>
+    </ul>
+    <p>Вы перестаёте решать вслепую. Каждый значимый шаг — как сверка погоды перед дорогой: посмотрели день, и пошли.</p>
+    <p class="proof">8 лет · тысячи людей планируют месяц по календарю</p>
+    <a class="btn" href="https://salebot.site/r/AndreyVidhayaClub_1" target="_blank" rel="noopener">Открыть свой календарь на месяц →</a>
+    <p class="micro">Подписка 990 ₽/мес · доступ сразу после оплаты · отмена в любой момент</p>
+    <p class="alt">Пока не готовы — <a href="https://t.me/astrologvidhaya" target="_blank" rel="noopener">бесплатный «совет дня» в Telegram</a></p>
+  </div>
+
+  <div class="divider"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z" fill="currentColor"/></svg></div>
+
+  <div class="explain">
+    <h2>Почему в джйотише главный знак — лунный</h2>
+    <p>«Знак зодиака», который все знают из гороскопов, — это <strong>солнечный</strong> знак. И в этом его слабость.</p>
+
+    <div class="compare">
+      <div class="cmp">
+        <span class="ic">☉</span>
+        <span class="nm">Солнце</span>
+        <span class="big">30 дней</span>
+        <span class="sub">в одном знаке</span>
+        <p class="d">«Все Тельцы» получают один прогноз на месяц. Точность низкая.</p>
+      </div>
+      <div class="cmp on">
+        <span class="ic">☾</span>
+        <span class="nm">Луна</span>
+        <span class="big">2,5 дня</span>
+        <span class="sub">в одном знаке</span>
+        <p class="d">Делит людей на узкие группы. Прогноз точнее в разы.</p>
+      </div>
+    </div>
+
+    <p class="pull">Всё, что влияет на ваши чувства, влияет на вашу жизнь.</p>
+    <p>В джйотише Луна отвечает за ум и чувства. А решения человек принимает на эмоциях — и только потом объясняет их логикой. Поэтому прогноз по Луне работает, а по Солнцу почти нет.</p>
+
+    <div class="sidenote">
+      <b>Почему знак «сдвинут».</b> Джйотиш считает по реальным звёздам — это сидерический зодиак. Западная астрология использует тропический, а он сместился относительно звёзд примерно на 24°. Поэтому ваш ведический лунный знак часто на один знак назад от привычного солнечного. Это не ошибка — просто разные системы отсчёта.
+    </div>
+
+    <h3>Три уровня вашей карты</h3>
+    <div class="signgrid">
+      <div class="signcard primary">
+        <span class="ic">☾</span>
+        <span class="nm">Лунный знак</span>
+        <span class="tag">Чандра раши · главный</span>
+        <p class="d">Ваша эмоциональная природа: как вы чувствуете, что вам нужно для покоя, как восстанавливаетесь, как реагируете инстинктивно. Это «внутренний вы».</p>
+      </div>
+      <div class="signcard">
+        <span class="ic">⇡</span>
+        <span class="nm">Восходящий знак</span>
+        <span class="tag">Лагна</span>
+        <p class="d">Точка, которая поднималась над горизонтом в миг вашего рождения. Тело, темперамент, первое впечатление, общий вектор жизни — «как вы входите в мир». Меняется примерно раз в 2 часа, поэтому нужно точное время.</p>
+      </div>
+      <div class="signcard">
+        <span class="ic">☉</span>
+        <span class="nm">Солнечный знак</span>
+        <span class="tag">Сурья раши</span>
+        <p class="d">Ядро, воля, дух, отношения с отцом и с властью. В джйотише важен, но на повседневность влияет меньше Луны.</p>
+      </div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Как считается</summary>
+    <div class="inner">
+      <p>Расчёт по <strong>сидерическому зодиаку</strong> с аянамшей Лахири — как в классическом джйотише. Положение Луны, Солнца и восходящего знака вычисляется по дате, времени и координатам города рождения.</p>
+      <p>Часовой пояс и летнее время подставляются автоматически по городу и дате — вручную ничего вводить не нужно.</p>
+      <p>Если знак вышел у самой границы (первые или последние полградуса), приложение об этом предупреждает: при неточном времени рождения возможен соседний знак — уточните время.</p>
+    </div>
+  </details>
+
+  <footer>
+    <span>Vidhaya · расчёт лунного знака</span>
+    <span>сидерический зодиак · аянамша Лахири</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============ ДАТА И ВРЕМЯ: выпадающие списки ============ */
+  var MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  var bdDay=document.getElementById('bd_day'), bdMon=document.getElementById('bd_month'), bdYear=document.getElementById('bd_year'),
+      btHour=document.getElementById('bt_hour'), btMin=document.getElementById('bt_min');
+  function addOpt(sel,val,txt){var o=document.createElement('option');o.value=val;o.textContent=txt;sel.appendChild(o);}
+  for(var _d=1;_d<=31;_d++) addOpt(bdDay,_d,_d);
+  for(var _m=0;_m<12;_m++) addOpt(bdMon,_m+1,MONTHS[_m]);
+  var _nowY=new Date().getFullYear();
+  for(var _y=_nowY;_y>=1930;_y--) addOpt(bdYear,_y,_y);
+  for(var _h=0;_h<24;_h++) addOpt(btHour,_h,(_h<10?'0':'')+_h);
+  for(var _mi=0;_mi<60;_mi++) addOpt(btMin,_mi,(_mi<10?'0':'')+_mi);
+  btHour.value='12'; btMin.value='0';
+
+  /* ============ CITY DATA ============ */
+  /* Формат: [название, широта, долгота, IANA-таймзона] */
+  var RU_CITIES=[["Абаза",52.652,90.089,"Asia/Krasnoyarsk"],["Абакан",53.722,91.444,"Asia/Krasnoyarsk"],["Абдулино",53.678,53.647,"Asia/Yekaterinburg"],["Абинск",44.868,38.162,"Europe/Moscow"],["Агидель",55.9,53.922,"Asia/Yekaterinburg"],["Агрыз",56.523,52.994,"Europe/Moscow"],["Адыгейск",44.878,39.19,"Europe/Moscow"],["Азнакаево",54.86,53.075,"Europe/Moscow"],["Азов",47.112,39.423,"Europe/Moscow"],["Ак-Довурак",51.178,90.599,"Asia/Krasnoyarsk"],["Аксай",47.268,39.876,"Europe/Moscow"],["Алагир",43.042,44.22,"Europe/Moscow"],["Алапаевск",57.848,61.669,"Asia/Yekaterinburg"],["Алатырь",54.84,46.572,"Europe/Moscow"],["Алдан",58.609,125.382,"Asia/Yakutsk"],["Алейск",52.492,82.779,"Asia/Barnaul"],["Александров",56.392,38.711,"Europe/Moscow"],["Александровск",59.161,57.576,"Asia/Yekaterinburg"],["Александровск-Сахалинский",50.897,142.158,"Asia/Sakhalin"],["Алексеевка",50.63,38.688,"Europe/Moscow"],["Алексин",54.508,37.048,"Europe/Moscow"],["Алзамай",55.555,98.664,"Asia/Irkutsk"],["Алупка",44.416,34.044,"Europe/Simferopol"],["Алушта",44.676,34.41,"Europe/Simferopol"],["Альметьевск",54.901,52.297,"Europe/Moscow"],["Амурск",50.234,136.879,"Asia/Vladivostok"],["Анадырь",64.731,177.502,"Asia/Anadyr"],["Анапа",44.895,37.316,"Europe/Moscow"],["Ангарск",52.545,103.889,"Asia/Irkutsk"],["Андреаполь",56.651,32.262,"Europe/Moscow"],["Анжеро-Судженск",56.079,86.02,"Asia/Novokuznetsk"],["Анива",46.713,142.527,"Asia/Sakhalin"],["Апатиты",67.568,33.407,"Europe/Moscow"],["Апрелевка",55.528,37.065,"Europe/Moscow"],["Апшеронск",44.458,39.73,"Europe/Moscow"],["Арамиль",56.695,60.834,"Asia/Yekaterinburg"],["Аргун",43.292,45.872,"Europe/Moscow"],["Ардатов",54.847,46.241,"Europe/Moscow"],["Ардон",43.176,44.296,"Europe/Moscow"],["Арзамас",55.395,43.841,"Europe/Moscow"],["Аркадак",51.939,43.5,"Europe/Saratov"],["Армавир",45.001,41.132,"Europe/Moscow"],["Армянск",46.106,33.691,"Europe/Simferopol"],["Арсеньев",44.162,133.27,"Asia/Vladivostok"],["Арск",56.091,49.877,"Europe/Moscow"],["Артем",43.35,132.16,"Asia/Vladivostok"],["Артемовск",54.347,93.436,"Asia/Krasnoyarsk"],["Артемовский",57.338,61.895,"Asia/Yekaterinburg"],["Архангельск",64.539,40.517,"Europe/Moscow"],["Асбест",57.005,61.458,"Asia/Yekaterinburg"],["Асино",56.991,86.177,"Asia/Tomsk"],["Астрахань",46.366,48.056,"Europe/Astrakhan"],["Аткарск",51.874,45,"Europe/Saratov"],["Ахтубинск",48.275,46.191,"Europe/Astrakhan"],["Ачинск",56.254,90.479,"Asia/Krasnoyarsk"],["Аша",54.991,57.278,"Asia/Yekaterinburg"],["Бабаево",59.389,35.938,"Europe/Moscow"],["Бабушкин",51.711,105.867,"Asia/Irkutsk"],["Бавлы",54.406,53.246,"Europe/Moscow"],["Багратионовск",54.387,20.642,"Europe/Kaliningrad"],["Байкальск",51.523,104.149,"Asia/Irkutsk"],["Баймак",52.591,58.311,"Asia/Yekaterinburg"],["Бакал",54.941,58.805,"Asia/Yekaterinburg"],["Баксан",43.682,43.535,"Europe/Moscow"],["Балабаново",55.177,36.657,"Europe/Moscow"],["Балаково",52.022,47.783,"Europe/Saratov"],["Балахна",56.495,43.576,"Europe/Moscow"],["Балашиха",55.796,37.938,"Europe/Moscow"],["Балашов",51.539,43.184,"Europe/Saratov"],["Балей",51.582,116.638,"Asia/Chita"],["Балтийск",54.651,19.914,"Europe/Kaliningrad"],["Барабинск",55.351,78.346,"Asia/Novosibirsk"],["Барнаул",53.348,83.78,"Asia/Barnaul"],["Барыш",53.653,47.118,"Europe/Ulyanovsk"],["Батайск",47.138,39.751,"Europe/Moscow"],["Бахчисарай",44.751,33.875,"Europe/Simferopol"],["Бежецк",57.786,36.69,"Europe/Moscow"],["Белая Калитва",48.177,40.803,"Europe/Moscow"],["Белая Холуница",58.842,50.846,"Europe/Kirov"],["Белгород",50.598,36.586,"Europe/Moscow"],["Белебей",54.103,54.111,"Asia/Yekaterinburg"],["Белев",53.811,36.138,"Europe/Moscow"],["Белинский",52.964,43.418,"Europe/Moscow"],["Белово",54.422,86.304,"Asia/Novokuznetsk"],["Белогорск",50.921,128.474,"Asia/Yakutsk"],["Белогорск",45.057,34.6,"Europe/Simferopol"],["Белозерск",60.031,37.789,"Europe/Moscow"],["Белокуриха",51.996,84.984,"Asia/Barnaul"],["Беломорск",64.538,34.78,"Europe/Moscow"],["Белоозерский",55.46,38.439,"Europe/Moscow"],["Белорецк",53.968,58.41,"Asia/Yekaterinburg"],["Белореченск",44.765,39.878,"Europe/Moscow"],["Белоусово",55.096,36.678,"Europe/Moscow"],["Белоярский",63.712,66.677,"Asia/Yekaterinburg"],["Белый",55.834,32.939,"Europe/Moscow"],["Бердск",54.758,83.107,"Asia/Novosibirsk"],["Березники",59.408,56.804,"Asia/Yekaterinburg"],["Березовский",55.669,86.274,"Asia/Novokuznetsk"],["Березовский",56.91,60.818,"Asia/Yekaterinburg"],["Беслан",43.194,44.534,"Europe/Moscow"],["Бийск",52.539,85.214,"Asia/Barnaul"],["Бикин",46.819,134.255,"Asia/Vladivostok"],["Билибино",68.058,166.439,"Asia/Anadyr"],["Биробиджан",48.795,132.922,"Asia/Vladivostok"],["Бирск",55.416,55.558,"Asia/Yekaterinburg"],["Бирюсинск",55.961,97.821,"Asia/Irkutsk"],["Бирюч",50.648,38.401,"Europe/Moscow"],["Благовещенск",50.291,127.527,"Asia/Yakutsk"],["Благовещенск",55.05,55.955,"Asia/Yekaterinburg"],["Благодарный",45.099,43.431,"Europe/Moscow"],["Бобров",51.09,40.032,"Europe/Moscow"],["Богданович",56.776,62.046,"Asia/Yekaterinburg"],["Богородицк",53.77,38.123,"Europe/Moscow"],["Богородск",56.102,43.514,"Europe/Moscow"],["Боготол",56.21,89.53,"Asia/Krasnoyarsk"],["Богучар",49.935,40.559,"Europe/Moscow"],["Бодайбо",57.847,114.187,"Asia/Irkutsk"],["Бокситогорск",59.473,33.846,"Europe/Moscow"],["Болгар",54.975,49.03,"Europe/Moscow"],["Бологое",57.886,34.054,"Europe/Moscow"],["Болотное",55.669,84.391,"Asia/Novosibirsk"],["Болохово",54.082,37.827,"Europe/Moscow"],["Болхов",53.444,36.008,"Europe/Moscow"],["Большой Камень",43.111,132.348,"Asia/Vladivostok"],["Бор",56.357,44.065,"Europe/Moscow"],["Борзя",50.388,116.523,"Asia/Chita"],["Борисоглебск",51.366,42.101,"Europe/Moscow"],["Боровичи",58.384,33.918,"Europe/Moscow"],["Боровск",55.213,36.493,"Europe/Moscow"],["Бородино",55.905,94.902,"Asia/Krasnoyarsk"],["Братск",56.151,101.634,"Asia/Irkutsk"],["Бронницы",55.426,38.264,"Europe/Moscow"],["Брянск",53.242,34.365,"Europe/Moscow"],["Бугульма",54.536,52.79,"Europe/Moscow"],["Бугуруслан",53.652,52.433,"Asia/Yekaterinburg"],["Буденновск",44.782,44.165,"Europe/Moscow"],["Бузулук",52.788,52.262,"Asia/Yekaterinburg"],["Буинск",54.964,48.29,"Europe/Moscow"],["Буй",58.473,41.531,"Europe/Moscow"],["Буйнакск",42.821,47.117,"Europe/Moscow"],["Бутурлиновка",50.831,40.598,"Europe/Moscow"],["Валдай",57.982,33.237,"Europe/Moscow"],["Валуйки",50.211,38.1,"Europe/Moscow"],["Велиж",55.606,31.186,"Europe/Moscow"],["Великие Луки",56.332,30.551,"Europe/Moscow"],["Великий Новгород",58.521,31.276,"Europe/Moscow"],["Великий Устюг",60.76,46.305,"Europe/Moscow"],["Вельск",61.066,42.103,"Europe/Moscow"],["Венев",54.354,38.264,"Europe/Moscow"],["Верещагино",58.08,54.658,"Asia/Yekaterinburg"],["Верея",55.343,36.186,"Europe/Moscow"],["Верхнеуральск",53.876,59.217,"Asia/Yekaterinburg"],["Верхний Тагил",57.376,59.952,"Asia/Yekaterinburg"],["Верхний Уфалей",56.049,60.232,"Asia/Yekaterinburg"],["Верхняя Пышма",56.976,60.565,"Asia/Yekaterinburg"],["Верхняя Салда",58.047,60.556,"Asia/Yekaterinburg"],["Верхняя Тура",58.364,59.827,"Asia/Yekaterinburg"],["Верхотурье",58.862,60.81,"Asia/Yekaterinburg"],["Верхоянск",67.55,133.391,"Asia/Yakutsk"],["Весьегонск",58.658,37.257,"Europe/Moscow"],["Ветлуга",57.856,45.776,"Europe/Moscow"],["Видное",55.552,37.706,"Europe/Moscow"],["Вилюйск",63.752,121.627,"Asia/Yakutsk"],["Вилючинск",52.93,158.406,"Asia/Kamchatka"],["Вихоревка",56.121,101.17,"Asia/Irkutsk"],["Вичуга",57.204,41.913,"Europe/Moscow"],["Владивосток",43.116,131.882,"Asia/Vladivostok"],["Владикавказ",43.021,44.682,"Europe/Moscow"],["Владимир",56.128,40.408,"Europe/Moscow"],["Волгоград",48.707,44.517,"Europe/Volgograd"],["Волгодонск",47.517,42.198,"Europe/Moscow"],["Волгореченск",57.442,41.159,"Europe/Moscow"],["Волжск",55.862,48.372,"Europe/Moscow"],["Волжский",48.798,44.746,"Europe/Volgograd"],["Вологда",59.248,39.836,"Europe/Moscow"],["Володарск",56.217,43.16,"Europe/Moscow"],["Волоколамск",56.036,35.959,"Europe/Moscow"],["Волосово",59.445,29.492,"Europe/Moscow"],["Волхов",59.901,32.352,"Europe/Moscow"],["Волчанск",59.935,60.08,"Asia/Yekaterinburg"],["Вольск",52.046,47.387,"Europe/Saratov"],["Воркута",67.497,64.061,"Europe/Moscow"],["Воронеж",51.659,39.197,"Europe/Moscow"],["Ворсма",55.99,43.272,"Europe/Moscow"],["Воскресенск",55.307,38.703,"Europe/Moscow"],["Воткинск",57.052,53.987,"Europe/Samara"],["Всеволожск",60.019,30.646,"Europe/Moscow"],["Вуктыл",63.862,57.317,"Europe/Moscow"],["Выборг",60.713,28.733,"Europe/Moscow"],["Выкса",55.321,42.168,"Europe/Moscow"],["Высоковск",56.336,36.525,"Europe/Moscow"],["Высоцк",60.63,28.571,"Europe/Moscow"],["Вытегра",61.006,36.45,"Europe/Moscow"],["Вышний Волочек",57.568,34.54,"Europe/Moscow"],["Вяземский",47.535,134.755,"Asia/Vladivostok"],["Вязники",56.298,42.269,"Europe/Moscow"],["Вязьма",55.212,34.295,"Europe/Moscow"],["Вятские Поляны",56.228,51.061,"Europe/Kirov"],["Гаврилов Посад",56.559,40.123,"Europe/Moscow"],["Гаврилов-Ям",57.309,39.855,"Europe/Moscow"],["Гагарин",55.553,34.995,"Europe/Moscow"],["Гаджиево",69.249,33.315,"Europe/Moscow"],["Гай",51.465,58.444,"Asia/Yekaterinburg"],["Галич",58.383,42.365,"Europe/Moscow"],["Гатчина",59.565,30.128,"Europe/Moscow"],["Гвардейск",54.659,21.05,"Europe/Kaliningrad"],["Гдов",58.743,27.826,"Europe/Moscow"],["Геленджик",44.563,38.079,"Europe/Moscow"],["Георгиевск",44.149,43.474,"Europe/Moscow"],["Глазов",58.136,52.664,"Europe/Samara"],["Голицыно",55.619,36.986,"Europe/Moscow"],["Горбатов",56.131,43.063,"Europe/Moscow"],["Горно-Алтайск",51.958,85.96,"Asia/Barnaul"],["Горнозаводск",58.374,58.323,"Asia/Yekaterinburg"],["Горняк",50.998,81.464,"Asia/Barnaul"],["Городец",56.645,43.472,"Europe/Moscow"],["Городище",53.273,45.703,"Europe/Moscow"],["Городовиковск",46.088,41.936,"Europe/Moscow"],["Гороховец",56.202,42.693,"Europe/Moscow"],["Горячий Ключ",44.634,39.135,"Europe/Moscow"],["Грайворон",50.486,35.666,"Europe/Moscow"],["Гремячинск",58.563,57.852,"Asia/Yekaterinburg"],["Грозный",43.318,45.698,"Europe/Moscow"],["Грязи",52.487,39.933,"Europe/Moscow"],["Грязовец",58.876,40.249,"Europe/Moscow"],["Губаха",58.837,57.555,"Asia/Yekaterinburg"],["Губкин",51.284,37.535,"Europe/Moscow"],["Губкинский",64.446,76.471,"Asia/Yekaterinburg"],["Гудермес",43.352,46.104,"Europe/Moscow"],["Гуково",48.045,39.948,"Europe/Moscow"],["Гулькевичи",45.361,40.692,"Europe/Moscow"],["Гурьевск",54.771,20.604,"Europe/Kaliningrad"],["Гурьевск",54.286,85.948,"Asia/Novokuznetsk"],["Гусев",54.592,22.194,"Europe/Kaliningrad"],["Гусиноозерск",51.287,106.523,"Asia/Irkutsk"],["Гусь-Хрустальный",55.62,40.658,"Europe/Moscow"],["Давлеканово",54.223,55.031,"Asia/Yekaterinburg"],["Дагестанские Огни",42.115,48.194,"Europe/Moscow"],["Далматово",56.262,62.939,"Asia/Yekaterinburg"],["Дальнегорск",44.554,135.566,"Asia/Vladivostok"],["Дальнереченск",45.931,133.732,"Asia/Vladivostok"],["Данилов",58.186,40.18,"Europe/Moscow"],["Данков",53.258,39.146,"Europe/Moscow"],["Дегтярск",56.705,60.079,"Asia/Yekaterinburg"],["Дедовск",55.87,37.125,"Europe/Moscow"],["Демидов",55.268,31.506,"Europe/Moscow"],["Дербент",42.059,48.291,"Europe/Moscow"],["Десногорск",54.146,33.283,"Europe/Moscow"],["Джанкой",45.709,34.388,"Europe/Simferopol"],["Дзержинск",56.238,43.46,"Europe/Moscow"],["Дзержинский",55.624,37.844,"Europe/Moscow"],["Дивногорск",55.958,92.38,"Asia/Krasnoyarsk"],["Дигора",43.157,44.155,"Europe/Moscow"],["Димитровград",54.217,49.626,"Europe/Ulyanovsk"],["Дмитриев-Льговский",52.127,35.074,"Europe/Moscow"],["Дмитров",56.348,37.527,"Europe/Moscow"],["Дмитровск",52.505,35.142,"Europe/Moscow"],["Дно",57.827,29.963,"Europe/Moscow"],["Добрянка",58.47,56.413,"Asia/Yekaterinburg"],["Долгопрудный",55.939,37.51,"Europe/Moscow"],["Долинск",47.326,142.795,"Asia/Sakhalin"],["Домодедово",55.436,37.766,"Europe/Moscow"],["Донецк",48.335,39.946,"Europe/Moscow"],["Донской",53.968,38.337,"Europe/Moscow"],["Дорогобуж",54.914,33.302,"Europe/Moscow"],["Дрезна",55.744,38.85,"Europe/Moscow"],["Дубна",56.742,37.176,"Europe/Moscow"],["Дубовка",49.055,44.827,"Europe/Volgograd"],["Дудинка",69.403,86.191,"Asia/Krasnoyarsk"],["Духовщина",55.195,32.401,"Europe/Moscow"],["Дюртюли",55.485,54.852,"Asia/Yekaterinburg"],["Дятьково",53.596,34.355,"Europe/Moscow"],["Евпатория",45.191,33.368,"Europe/Simferopol"],["Егорьевск",55.383,39.036,"Europe/Moscow"],["Ейск",46.712,38.276,"Europe/Moscow"],["Екатеринбург",56.839,60.605,"Asia/Yekaterinburg"],["Елабуга",55.757,52.054,"Europe/Moscow"],["Елец",52.615,38.529,"Europe/Moscow"],["Елизово",53.183,158.388,"Asia/Kamchatka"],["Ельня",54.584,33.175,"Europe/Moscow"],["Еманжелинск",54.755,61.324,"Asia/Yekaterinburg"],["Емва",62.597,50.873,"Europe/Moscow"],["Енисейск",58.449,92.165,"Asia/Krasnoyarsk"],["Ермолино",55.197,36.595,"Europe/Moscow"],["Ершов",51.351,48.276,"Europe/Saratov"],["Ессентуки",44.045,42.859,"Europe/Moscow"],["Ефремов",53.146,38.092,"Europe/Moscow"],["Железноводск",44.132,43.031,"Europe/Moscow"],["Железногорск",56.253,93.532,"Asia/Krasnoyarsk"],["Железногорск",52.338,35.352,"Europe/Moscow"],["Железногорск-Илимский",56.585,104.114,"Asia/Irkutsk"],["Жердевка",51.842,41.462,"Europe/Moscow"],["Жигулевск",53.401,49.495,"Europe/Samara"],["Жиздра",53.752,34.739,"Europe/Moscow"],["Жирновск",50.977,44.786,"Europe/Volgograd"],["Жуков",55.03,36.739,"Europe/Moscow"],["Жуковка",53.534,33.73,"Europe/Moscow"],["Жуковский",55.6,38.122,"Europe/Moscow"],["Завитинск",50.106,129.439,"Asia/Yakutsk"],["Заводоуковск",56.503,66.551,"Asia/Yekaterinburg"],["Заволжск",57.492,42.138,"Europe/Moscow"],["Заволжье",56.64,43.387,"Europe/Moscow"],["Задонск",52.4,38.921,"Europe/Moscow"],["Заинск",55.299,52.006,"Europe/Moscow"],["Закаменск",50.373,103.287,"Asia/Irkutsk"],["Заозерный",55.962,94.709,"Asia/Krasnoyarsk"],["Заозерск",69.4,32.45,"Europe/Moscow"],["Западная Двина",56.257,32.081,"Europe/Moscow"],["Заполярный",69.413,30.798,"Europe/Moscow"],["Зарайск",54.762,38.885,"Europe/Moscow"],["Заречный",53.196,45.169,"Europe/Moscow"],["Заречный",56.81,61.338,"Asia/Yekaterinburg"],["Заринск",53.706,84.932,"Asia/Barnaul"],["Звенигово",55.974,48.017,"Europe/Moscow"],["Звенигород",55.73,36.855,"Europe/Moscow"],["Зверево",48.044,40.127,"Europe/Moscow"],["Зеленогорск",56.113,94.589,"Asia/Krasnoyarsk"],["Зеленоградск",54.96,20.475,"Europe/Kaliningrad"],["Зеленодольск",55.847,48.501,"Europe/Moscow"],["Зеленокумск",44.403,43.884,"Europe/Moscow"],["Зерноград",46.85,40.313,"Europe/Moscow"],["Зея",53.734,127.266,"Asia/Yakutsk"],["Зима",53.921,102.049,"Asia/Irkutsk"],["Златоуст",55.171,59.673,"Asia/Yekaterinburg"],["Злынка",52.427,31.736,"Europe/Moscow"],["Змеиногорск",51.158,82.187,"Asia/Barnaul"],["Знаменск",48.587,45.737,"Europe/Astrakhan"],["Зубцов",56.176,34.583,"Europe/Moscow"],["Зуевка",58.403,51.133,"Europe/Kirov"],["Ивангород",59.377,28.223,"Europe/Moscow"],["Иваново",56.999,40.973,"Europe/Moscow"],["Ивантеевка",55.974,37.921,"Europe/Moscow"],["Ивдель",60.694,60.425,"Asia/Yekaterinburg"],["Игарка",67.467,86.581,"Asia/Krasnoyarsk"],["Ижевск",56.853,53.211,"Europe/Samara"],["Избербаш",42.565,47.871,"Europe/Moscow"],["Изобильный",45.368,41.709,"Europe/Moscow"],["Иланский",56.237,96.067,"Asia/Krasnoyarsk"],["Инза",53.855,46.353,"Europe/Ulyanovsk"],["Иннополис",55.752,48.745,"Europe/Moscow"],["Инсар",53.877,44.37,"Europe/Moscow"],["Инта",66.037,60.115,"Europe/Moscow"],["Ипатово",45.718,42.897,"Europe/Moscow"],["Ирбит",57.684,63.058,"Asia/Yekaterinburg"],["Иркутск",52.286,104.281,"Asia/Irkutsk"],["Исилькуль",54.91,71.282,"Asia/Omsk"],["Искитим",54.627,83.295,"Asia/Novosibirsk"],["Истра",55.906,36.86,"Europe/Moscow"],["Ишим",56.11,69.48,"Asia/Yekaterinburg"],["Ишимбай",53.455,56.044,"Asia/Yekaterinburg"],["Йошкар-Ола",56.634,47.9,"Europe/Moscow"],["Кадников",59.504,40.344,"Europe/Moscow"],["Казань",55.794,49.111,"Europe/Moscow"],["Калач",50.424,41.016,"Europe/Moscow"],["Калач-на-Дону",48.689,43.531,"Europe/Volgograd"],["Калачинск",55.06,74.565,"Asia/Omsk"],["Калининград",54.707,20.507,"Europe/Kaliningrad"],["Калининск",51.499,44.471,"Europe/Saratov"],["Калтан",53.521,87.277,"Asia/Novokuznetsk"],["Калуга",54.506,36.252,"Europe/Moscow"],["Калязин",57.258,37.782,"Europe/Moscow"],["Камбарка",56.266,54.193,"Europe/Samara"],["Каменка",53.186,44.047,"Europe/Moscow"],["Каменногорск",60.951,29.131,"Europe/Moscow"],["Каменск-Уральский",56.415,61.919,"Asia/Yekaterinburg"],["Каменск-Шахтинский",48.321,40.269,"Europe/Moscow"],["Камень-на-Оби",53.791,81.355,"Asia/Barnaul"],["Камешково",56.349,40.996,"Europe/Moscow"],["Камызяк",46.111,48.073,"Europe/Astrakhan"],["Камышин",50.065,45.384,"Europe/Volgograd"],["Камышлов",56.847,62.712,"Asia/Yekaterinburg"],["Канаш",55.507,47.492,"Europe/Moscow"],["Кандалакша",67.157,32.414,"Europe/Moscow"],["Канск",56.205,95.705,"Asia/Krasnoyarsk"],["Карабаново",56.313,38.703,"Europe/Moscow"],["Карабаш",55.485,60.236,"Asia/Yekaterinburg"],["Карабулак",43.306,44.909,"Europe/Moscow"],["Карасук",53.734,78.042,"Asia/Novosibirsk"],["Карачаевск",43.773,41.914,"Europe/Moscow"],["Карачев",53.13,34.989,"Europe/Moscow"],["Каргат",55.195,80.283,"Asia/Novosibirsk"],["Каргополь",61.501,38.964,"Europe/Moscow"],["Карпинск",59.767,60.001,"Asia/Yekaterinburg"],["Карталы",53.054,60.648,"Asia/Yekaterinburg"],["Касимов",54.937,41.391,"Europe/Moscow"],["Касли",55.887,60.742,"Asia/Yekaterinburg"],["Каспийск",42.892,47.637,"Europe/Moscow"],["Катав-Ивановск",54.752,58.198,"Asia/Yekaterinburg"],["Катайск",56.291,62.58,"Asia/Yekaterinburg"],["Качканар",58.705,59.484,"Asia/Yekaterinburg"],["Кашин",57.36,37.612,"Europe/Moscow"],["Кашира",54.853,38.19,"Europe/Moscow"],["Кедровый",57.562,79.568,"Asia/Tomsk"],["Кемерово",55.391,86.047,"Asia/Novokuznetsk"],["Кемь",64.954,34.595,"Europe/Moscow"],["Керчь",45.356,36.467,"Europe/Simferopol"],["Кизел",59.051,57.647,"Asia/Yekaterinburg"],["Кизилюрт",43.204,46.873,"Europe/Moscow"],["Кизляр",43.848,46.723,"Europe/Moscow"],["Кимовск",53.97,38.538,"Europe/Moscow"],["Кимры",56.873,37.356,"Europe/Moscow"],["Кингисепп",59.374,28.611,"Europe/Moscow"],["Кинель",53.221,50.634,"Europe/Samara"],["Кинешма",57.443,42.169,"Europe/Moscow"],["Киреевск",53.932,37.922,"Europe/Moscow"],["Киренск",57.776,108.111,"Asia/Irkutsk"],["Киржач",56.149,38.864,"Europe/Moscow"],["Кириллов",59.859,38.375,"Europe/Moscow"],["Кириши",59.474,32.062,"Europe/Moscow"],["Киров",54.079,34.308,"Europe/Moscow"],["Киров",58.604,49.668,"Europe/Kirov"],["Кировград",57.43,60.062,"Asia/Yekaterinburg"],["Кирово-Чепецк",58.556,50.032,"Europe/Kirov"],["Кировск",59.875,30.981,"Europe/Moscow"],["Кировск",67.615,33.664,"Europe/Moscow"],["Кирс",59.34,52.241,"Europe/Kirov"],["Кирсанов",52.651,42.729,"Europe/Moscow"],["Киселевск",54.006,86.637,"Asia/Novokuznetsk"],["Кисловодск",43.905,42.717,"Europe/Moscow"],["Клин",56.343,36.724,"Europe/Moscow"],["Клинцы",52.753,32.234,"Europe/Moscow"],["Княгинино",55.821,45.032,"Europe/Moscow"],["Ковдор",67.566,30.474,"Europe/Moscow"],["Ковров",56.355,41.317,"Europe/Moscow"],["Ковылкино",54.039,43.919,"Europe/Moscow"],["Когалым",62.264,74.483,"Asia/Yekaterinburg"],["Кодинск",58.603,99.18,"Asia/Krasnoyarsk"],["Козельск",54.035,35.781,"Europe/Moscow"],["Козловка",55.841,48.258,"Europe/Moscow"],["Козьмодемьянск",56.333,46.547,"Europe/Moscow"],["Кола",68.879,33.026,"Europe/Moscow"],["Кологрив",58.827,44.318,"Europe/Moscow"],["Коломна",55.103,38.753,"Europe/Moscow"],["Колпашево",58.311,82.903,"Asia/Tomsk"],["Кольчугино",56.333,39.391,"Europe/Moscow"],["Коммунар",59.622,30.393,"Europe/Moscow"],["Комсомольск",57.027,40.378,"Europe/Moscow"],["Комсомольск-на-Амуре",50.55,137.008,"Asia/Vladivostok"],["Конаково",56.728,36.801,"Europe/Moscow"],["Кондопога",62.206,34.268,"Europe/Moscow"],["Кондрово",54.796,35.927,"Europe/Moscow"],["Константиновск",47.577,41.097,"Europe/Moscow"],["Копейск",55.117,61.618,"Asia/Yekaterinburg"],["Кораблино",53.925,40.023,"Europe/Moscow"],["Кореновск",45.464,39.459,"Europe/Moscow"],["Коркино",54.89,61.403,"Asia/Yekaterinburg"],["Королев",55.916,37.855,"Europe/Moscow"],["Короча",50.813,37.19,"Europe/Moscow"],["Корсаков",46.632,142.799,"Asia/Sakhalin"],["Коряжма",61.289,47.1,"Europe/Moscow"],["Костерево",55.934,39.625,"Europe/Moscow"],["Костомукша",64.589,30.602,"Europe/Moscow"],["Кострома",57.768,40.927,"Europe/Moscow"],["Котельники",55.66,37.863,"Europe/Moscow"],["Котельниково",47.631,43.133,"Europe/Volgograd"],["Котельнич",58.303,48.348,"Europe/Kirov"],["Котлас",61.253,46.633,"Europe/Moscow"],["Котово",50.321,44.803,"Europe/Volgograd"],["Котовск",52.592,41.51,"Europe/Moscow"],["Кохма",56.932,41.093,"Europe/Moscow"],["Красавино",60.961,46.481,"Europe/Moscow"],["Красноармейск",56.105,38.141,"Europe/Moscow"],["Красноармейск",51.024,45.695,"Europe/Saratov"],["Красновишерск",60.39,57.054,"Asia/Yekaterinburg"],["Красногорск",55.832,37.33,"Europe/Moscow"],["Краснодар",45.04,38.976,"Europe/Moscow"],["Краснозаводск",56.441,38.232,"Europe/Moscow"],["Краснознаменск",54.945,22.493,"Europe/Kaliningrad"],["Краснознаменск",55.598,37.039,"Europe/Moscow"],["Краснокаменск",50.093,118.032,"Asia/Chita"],["Краснокамск",58.082,55.748,"Asia/Yekaterinburg"],["Красноперекопск",45.954,33.792,"Europe/Simferopol"],["Краснослободск",48.707,44.563,"Europe/Volgograd"],["Краснослободск",54.425,43.785,"Europe/Moscow"],["Краснотурьинск",59.764,60.193,"Asia/Yekaterinburg"],["Красноуральск",58.349,60.041,"Asia/Yekaterinburg"],["Красноуфимск",56.612,57.764,"Asia/Yekaterinburg"],["Красноярск",56.009,92.852,"Asia/Krasnoyarsk"],["Красный Кут",50.96,46.971,"Europe/Saratov"],["Красный Сулин",47.883,40.078,"Europe/Moscow"],["Красный Холм",58.057,37.113,"Europe/Moscow"],["Кременки",54.886,37.117,"Europe/Moscow"],["Кропоткин",45.433,40.573,"Europe/Moscow"],["Крымск",44.934,37.986,"Europe/Moscow"],["Кстово",56.143,44.166,"Europe/Moscow"],["Кубинка",55.575,36.695,"Europe/Moscow"],["Кувандык",51.478,57.361,"Asia/Yekaterinburg"],["Кувшиново",57.027,34.168,"Europe/Moscow"],["Кудрово",59.908,30.512,"Europe/Moscow"],["Кудымкар",59.017,54.657,"Asia/Yekaterinburg"],["Кузнецк",53.113,46.605,"Europe/Moscow"],["Куйбышев",55.469,78.324,"Asia/Novosibirsk"],["Кукмор",56.186,50.897,"Europe/Moscow"],["Кулебаки",55.43,42.513,"Europe/Moscow"],["Кумертау",52.756,55.797,"Asia/Yekaterinburg"],["Кунгур",57.428,56.944,"Asia/Yekaterinburg"],["Купино",54.366,77.297,"Asia/Novosibirsk"],["Курган",55.444,65.316,"Asia/Yekaterinburg"],["Курганинск",44.888,40.591,"Europe/Moscow"],["Курильск",45.227,147.88,"Asia/Sakhalin"],["Курлово",55.453,40.612,"Europe/Moscow"],["Куровское",55.579,38.921,"Europe/Moscow"],["Курск",51.73,36.193,"Europe/Moscow"],["Куртамыш",54.937,64.42,"Asia/Yekaterinburg"],["Курчалой",43.205,46.089,"Europe/Moscow"],["Курчатов",51.66,35.657,"Europe/Moscow"],["Куса",55.339,59.439,"Asia/Yekaterinburg"],["Кушва",58.283,59.765,"Asia/Yekaterinburg"],["Кызыл",51.719,94.438,"Asia/Krasnoyarsk"],["Кыштым",55.706,60.556,"Asia/Yekaterinburg"],["Кяхта",50.347,106.453,"Asia/Irkutsk"],["Лабинск",44.635,40.725,"Europe/Moscow"],["Лабытнанги",66.659,66.388,"Asia/Yekaterinburg"],["Лагань",45.393,47.343,"Europe/Moscow"],["Ладушкин",54.569,20.169,"Europe/Kaliningrad"],["Лаишево",55.404,49.55,"Europe/Moscow"],["Лакинск",56.018,39.957,"Europe/Moscow"],["Лангепас",61.254,75.181,"Asia/Yekaterinburg"],["Лахденпохья",61.519,30.2,"Europe/Moscow"],["Лебедянь",53.016,39.144,"Europe/Moscow"],["Лениногорск",54.597,52.443,"Europe/Moscow"],["Ленинск",48.694,45.199,"Europe/Volgograd"],["Ленинск-Кузнецкий",54.667,86.18,"Asia/Novokuznetsk"],["Ленск",60.728,114.955,"Asia/Yakutsk"],["Лермонтов",44.105,42.973,"Europe/Moscow"],["Лесной",58.635,59.798,"Asia/Yekaterinburg"],["Лесозаводск",45.478,133.419,"Asia/Vladivostok"],["Лесосибирск",58.222,92.504,"Asia/Krasnoyarsk"],["Ливны",52.428,37.604,"Europe/Moscow"],["Ликино-Дулево",55.708,38.958,"Europe/Moscow"],["Липецк",52.61,39.595,"Europe/Moscow"],["Липки",53.942,37.702,"Europe/Moscow"],["Лиски",50.995,39.518,"Europe/Moscow"],["Лихославль",57.122,35.467,"Europe/Moscow"],["Лобня",56.033,37.461,"Europe/Moscow"],["Лодейное Поле",60.732,33.552,"Europe/Moscow"],["Лосино-Петровский",55.871,38.201,"Europe/Moscow"],["Луга",58.737,29.847,"Europe/Moscow"],["Луза",60.629,47.261,"Europe/Kirov"],["Лукоянов",55.033,44.493,"Europe/Moscow"],["Луховицы",54.965,39.026,"Europe/Moscow"],["Лысково",56.026,45.036,"Europe/Moscow"],["Лысьва",58.1,57.809,"Asia/Yekaterinburg"],["Лыткарино",55.578,37.903,"Europe/Moscow"],["Льгов",51.66,35.261,"Europe/Moscow"],["Любань",59.349,31.248,"Europe/Moscow"],["Люберцы",55.7,37.961,"Europe/Moscow"],["Любим",58.362,40.687,"Europe/Moscow"],["Людиново",53.87,34.439,"Europe/Moscow"],["Лянтор",61.639,72.179,"Asia/Yekaterinburg"],["Магадан",59.568,150.808,"Asia/Magadan"],["Магас",43.169,44.813,"Europe/Moscow"],["Магнитогорск",53.407,58.979,"Asia/Yekaterinburg"],["Майкоп",44.61,40.101,"Europe/Moscow"],["Майский",43.628,44.052,"Europe/Moscow"],["Макаров",48.624,142.78,"Asia/Sakhalin"],["Макарьев",57.881,43.801,"Europe/Moscow"],["Макушино",55.215,67.245,"Asia/Yekaterinburg"],["Малая Вишера",58.846,32.225,"Europe/Moscow"],["Малгобек",43.51,44.59,"Europe/Moscow"],["Малмыж",56.524,50.678,"Europe/Kirov"],["Малоархангельск",52.4,36.504,"Europe/Moscow"],["Малоярославец",55.018,36.463,"Europe/Moscow"],["Мамадыш",55.715,51.413,"Europe/Moscow"],["Мамоново",54.465,19.945,"Europe/Kaliningrad"],["Мантурово",58.327,44.757,"Europe/Moscow"],["Мариинск",56.213,87.745,"Asia/Novokuznetsk"],["Мариинский Посад",56.112,47.714,"Europe/Moscow"],["Маркс",51.713,46.74,"Europe/Saratov"],["Махачкала",42.985,47.505,"Europe/Moscow"],["Мглин",53.06,32.847,"Europe/Moscow"],["Мегион",61.032,76.103,"Asia/Yekaterinburg"],["Медвежьегорск",62.913,34.457,"Europe/Moscow"],["Медногорск",51.404,57.583,"Asia/Yekaterinburg"],["Медынь",54.969,35.887,"Europe/Moscow"],["Межгорье",54.24,57.961,"Asia/Yekaterinburg"],["Междуреченск",53.687,88.07,"Asia/Novokuznetsk"],["Мезень",65.84,44.253,"Europe/Moscow"],["Меленки",55.339,41.634,"Europe/Moscow"],["Мелеуз",52.959,55.928,"Asia/Yekaterinburg"],["Менделеевск",55.895,52.314,"Europe/Moscow"],["Мензелинск",55.727,53.1,"Europe/Moscow"],["Мещовск",54.319,35.282,"Europe/Moscow"],["Миасс",55.046,60.108,"Asia/Yekaterinburg"],["Микунь",62.358,50.072,"Europe/Moscow"],["Миллерово",48.926,40.398,"Europe/Moscow"],["Минеральные Воды",44.209,43.138,"Europe/Moscow"],["Минусинск",53.71,91.687,"Asia/Krasnoyarsk"],["Миньяр",55.071,57.548,"Asia/Yekaterinburg"],["Мирный",62.765,40.336,"Europe/Moscow"],["Мирный",62.536,113.967,"Asia/Yakutsk"],["Михайлов",54.23,39.009,"Europe/Moscow"],["Михайловка",50.071,43.24,"Europe/Volgograd"],["Михайловск",56.437,59.114,"Asia/Yekaterinburg"],["Михайловск",45.13,42.029,"Europe/Moscow"],["Мичуринск",52.891,40.51,"Europe/Moscow"],["Могоча",53.736,119.766,"Asia/Chita"],["Можайск",55.507,36.024,"Europe/Moscow"],["Можга",56.443,52.214,"Europe/Samara"],["Моздок",43.747,44.657,"Europe/Moscow"],["Мончегорск",67.939,32.936,"Europe/Moscow"],["Морозовск",48.351,41.831,"Europe/Moscow"],["Моршанск",53.444,41.812,"Europe/Moscow"],["Мосальск",54.482,34.987,"Europe/Moscow"],["Москва",55.754,37.62,"Europe/Moscow"],["Муравленко",63.794,74.495,"Asia/Yekaterinburg"],["Мураши",59.396,48.964,"Europe/Kirov"],["Мурино",60.045,30.457,"Europe/Moscow"],["Мурманск",69.008,33.069,"Europe/Moscow"],["Муром",55.563,42.023,"Europe/Moscow"],["Мценск",53.279,36.575,"Europe/Moscow"],["Мыски",53.713,87.806,"Asia/Novokuznetsk"],["Мытищи",55.911,37.736,"Europe/Moscow"],["Мышкин",57.788,38.454,"Europe/Moscow"],["Набережные Челны",55.743,52.396,"Europe/Moscow"],["Навашино",55.544,42.189,"Europe/Moscow"],["Наволоки",57.468,41.961,"Europe/Moscow"],["Надым",65.538,72.518,"Asia/Yekaterinburg"],["Назарово",56.011,90.417,"Asia/Krasnoyarsk"],["Назрань",43.226,44.765,"Europe/Moscow"],["Называевск",55.569,71.35,"Asia/Omsk"],["Нальчик",43.485,43.607,"Europe/Moscow"],["Нариманов",46.692,47.85,"Europe/Astrakhan"],["Наро-Фоминск",55.386,36.734,"Europe/Moscow"],["Нарткала",43.558,43.858,"Europe/Moscow"],["Нарьян-Мар",67.638,53.007,"Europe/Moscow"],["Находка",42.824,132.893,"Asia/Vladivostok"],["Невель",56.02,29.924,"Europe/Moscow"],["Невельск",46.653,141.863,"Asia/Sakhalin"],["Невинномысск",44.623,41.948,"Europe/Moscow"],["Невьянск",57.491,60.218,"Asia/Yekaterinburg"],["Нелидово",56.223,32.777,"Europe/Moscow"],["Неман",55.032,22.032,"Europe/Kaliningrad"],["Нерехта",57.454,40.572,"Europe/Moscow"],["Нерчинск",51.959,116.585,"Asia/Chita"],["Нерюнгри",56.66,124.72,"Asia/Yakutsk"],["Нестеров",54.631,22.571,"Europe/Kaliningrad"],["Нефтегорск",52.797,51.164,"Europe/Samara"],["Нефтекамск",56.088,54.248,"Asia/Yekaterinburg"],["Нефтекумск",44.754,44.987,"Europe/Moscow"],["Нефтеюганск",61.088,72.616,"Asia/Yekaterinburg"],["Нея",58.294,43.878,"Europe/Moscow"],["Нижневартовск",60.94,76.57,"Asia/Yekaterinburg"],["Нижнекамск",55.631,51.814,"Europe/Moscow"],["Нижнеудинск",54.897,99.031,"Asia/Irkutsk"],["Нижние Серги",56.654,59.295,"Asia/Yekaterinburg"],["Нижний Ломов",53.53,43.673,"Europe/Moscow"],["Нижний Новгород",56.324,44.005,"Europe/Moscow"],["Нижний Тагил",57.91,59.981,"Asia/Yekaterinburg"],["Нижняя Салда",58.075,60.703,"Asia/Yekaterinburg"],["Нижняя Тура",58.631,59.852,"Asia/Yekaterinburg"],["Николаевск",50.017,45.473,"Europe/Volgograd"],["Николаевск-на-Амуре",53.146,140.711,"Asia/Vladivostok"],["Никольск",59.535,45.458,"Europe/Moscow"],["Никольск",53.714,46.08,"Europe/Moscow"],["Никольское",59.704,30.787,"Europe/Moscow"],["Новая Ладога",60.11,32.314,"Europe/Moscow"],["Новая Ляля",59.054,60.594,"Asia/Yekaterinburg"],["Новоалександровск",45.493,41.215,"Europe/Moscow"],["Новоалтайск",53.412,83.931,"Asia/Barnaul"],["Новоаннинский",50.53,42.667,"Europe/Volgograd"],["Нововоронеж",51.309,39.216,"Europe/Moscow"],["Новодвинск",64.414,40.821,"Europe/Moscow"],["Новозыбков",52.537,31.936,"Europe/Moscow"],["Новокубанск",45.104,41.048,"Europe/Moscow"],["Новокузнецк",53.794,87.214,"Asia/Novokuznetsk"],["Новокуйбышевск",53.099,49.948,"Europe/Samara"],["Новомичуринск",54.038,39.747,"Europe/Moscow"],["Новомосковск",54.011,38.291,"Europe/Moscow"],["Новопавловск",43.962,43.634,"Europe/Moscow"],["Новоржев",57.03,29.343,"Europe/Moscow"],["Новороссийск",44.724,37.769,"Europe/Moscow"],["Новосибирск",55.028,82.921,"Asia/Novosibirsk"],["Новосиль",52.975,37.044,"Europe/Moscow"],["Новосокольники",56.341,30.153,"Europe/Moscow"],["Новотроицк",51.196,58.302,"Asia/Yekaterinburg"],["Новоузенск",50.455,48.141,"Europe/Saratov"],["Новоульяновск",54.145,48.391,"Europe/Ulyanovsk"],["Новоуральск",57.247,60.096,"Asia/Yekaterinburg"],["Новохоперск",51.095,41.617,"Europe/Moscow"],["Новочебоксарск",56.109,47.479,"Europe/Moscow"],["Новочеркасск",47.412,40.104,"Europe/Moscow"],["Новошахтинск",47.758,39.936,"Europe/Moscow"],["Новый Оскол",50.763,37.878,"Europe/Moscow"],["Новый Уренгой",66.084,76.681,"Asia/Yekaterinburg"],["Ногинск",55.869,38.462,"Europe/Moscow"],["Нолинск",57.56,49.936,"Europe/Kirov"],["Норильск",69.349,88.201,"Asia/Krasnoyarsk"],["Ноябрьск",63.202,75.451,"Asia/Yekaterinburg"],["Нурлат",54.428,50.805,"Europe/Moscow"],["Нытва",57.934,55.336,"Asia/Yekaterinburg"],["Нюрба",63.283,118.324,"Asia/Yakutsk"],["Нягань",62.145,65.395,"Asia/Yekaterinburg"],["Нязепетровск",56.054,59.61,"Asia/Yekaterinburg"],["Няндома",61.665,40.206,"Europe/Moscow"],["Облучье",49.019,131.054,"Asia/Vladivostok"],["Обнинск",55.094,36.612,"Europe/Moscow"],["Обоянь",51.212,36.276,"Europe/Moscow"],["Обь",54.995,82.694,"Asia/Novosibirsk"],["Одинцово",55.679,37.264,"Europe/Moscow"],["Озерск",54.408,22.013,"Europe/Kaliningrad"],["Озерск",55.763,60.708,"Asia/Yekaterinburg"],["Озеры",54.854,38.56,"Europe/Moscow"],["Октябрьск",53.164,48.671,"Europe/Samara"],["Октябрьский",54.482,53.466,"Asia/Yekaterinburg"],["Окуловка",58.391,33.29,"Europe/Moscow"],["Олекминск",60.376,120.406,"Asia/Yakutsk"],["Оленегорск",68.142,33.267,"Europe/Moscow"],["Олонец",60.979,32.973,"Europe/Moscow"],["Омск",54.985,73.367,"Asia/Omsk"],["Омутнинск",58.67,52.189,"Europe/Kirov"],["Онега",63.916,38.081,"Europe/Moscow"],["Опочка",56.711,28.672,"Europe/Moscow"],["Орел",52.967,36.07,"Europe/Moscow"],["Оренбург",51.788,55.102,"Asia/Yekaterinburg"],["Орехово-Зуево",55.815,38.987,"Europe/Moscow"],["Орлов",58.539,48.893,"Europe/Kirov"],["Орск",51.229,58.475,"Asia/Yekaterinburg"],["Оса",57.289,55.469,"Asia/Yekaterinburg"],["Осинники",53.599,87.337,"Asia/Novokuznetsk"],["Осташков",57.146,33.112,"Europe/Moscow"],["Остров",57.345,28.344,"Europe/Moscow"],["Островной",68.051,39.508,"Europe/Moscow"],["Острогожск",50.868,39.041,"Europe/Moscow"],["Отрадное",59.773,30.799,"Europe/Moscow"],["Отрадный",53.38,51.344,"Europe/Samara"],["Оха",53.587,142.941,"Asia/Sakhalin"],["Оханск",57.718,55.387,"Asia/Yekaterinburg"],["Очер",57.885,54.716,"Asia/Yekaterinburg"],["Павлово",55.98,43.1,"Europe/Moscow"],["Павловск",50.453,40.137,"Europe/Moscow"],["Павловский Посад",55.781,38.66,"Europe/Moscow"],["Палласовка",50.05,46.88,"Europe/Volgograd"],["Партизанск",43.128,133.126,"Asia/Vladivostok"],["Певек",69.702,170.3,"Asia/Anadyr"],["Пенза",53.175,45.035,"Europe/Moscow"],["Первомайск",54.868,43.801,"Europe/Moscow"],["Первоуральск",56.908,59.943,"Asia/Yekaterinburg"],["Перевоз",55.597,44.545,"Europe/Moscow"],["Пересвет",56.416,38.173,"Europe/Moscow"],["Переславль-Залесский",56.736,38.854,"Europe/Moscow"],["Пермь",58.01,56.234,"Asia/Yekaterinburg"],["Пестово",58.597,35.814,"Europe/Moscow"],["Петров Вал",50.138,45.209,"Europe/Volgograd"],["Петровск",52.309,45.385,"Europe/Saratov"],["Петровск-Забайкальский",51.275,108.847,"Asia/Chita"],["Петрозаводск",61.789,34.36,"Europe/Moscow"],["Петропавловск-Камчатский",53.037,158.656,"Asia/Kamchatka"],["Петухово",55.065,67.887,"Asia/Yekaterinburg"],["Петушки",55.93,39.451,"Europe/Moscow"],["Печора",65.149,57.224,"Europe/Moscow"],["Печоры",57.815,27.622,"Europe/Moscow"],["Пикалево",59.513,34.177,"Europe/Moscow"],["Пионерский",54.952,20.228,"Europe/Kaliningrad"],["Питкяранта",61.576,31.464,"Europe/Moscow"],["Плавск",53.71,37.286,"Europe/Moscow"],["Пласт",54.369,60.815,"Asia/Yekaterinburg"],["Плес",57.461,41.512,"Europe/Moscow"],["Поворино",51.195,42.247,"Europe/Moscow"],["Подольск",55.439,37.57,"Europe/Moscow"],["Подпорожье",60.913,34.157,"Europe/Moscow"],["Покачи",61.742,75.594,"Asia/Yekaterinburg"],["Покров",55.917,39.173,"Europe/Moscow"],["Покровск",61.484,129.148,"Asia/Yakutsk"],["Полевской",56.496,60.237,"Asia/Yekaterinburg"],["Полесск",54.863,21.1,"Europe/Kaliningrad"],["Полысаево",54.606,86.281,"Asia/Novokuznetsk"],["Полярные Зори",67.373,32.498,"Europe/Moscow"],["Полярный",69.199,33.451,"Europe/Moscow"],["Поронайск",49.239,143.101,"Asia/Sakhalin"],["Порхов",57.777,29.544,"Europe/Moscow"],["Похвистнево",53.65,52.124,"Europe/Samara"],["Почеп",52.915,33.474,"Europe/Moscow"],["Починок",54.406,32.44,"Europe/Moscow"],["Пошехонье",58.506,39.121,"Europe/Moscow"],["Правдинск",54.443,21.009,"Europe/Kaliningrad"],["Приволжск",57.381,41.281,"Europe/Moscow"],["Приморск",54.731,19.998,"Europe/Kaliningrad"],["Приморск",60.366,28.614,"Europe/Moscow"],["Приморско-Ахтарск",46.052,38.17,"Europe/Moscow"],["Приозерск",61.033,30.159,"Europe/Moscow"],["Прокопьевск",53.86,86.718,"Asia/Novokuznetsk"],["Пролетарск",46.704,41.728,"Europe/Moscow"],["Протвино",54.871,37.218,"Europe/Moscow"],["Прохладный",43.759,44.01,"Europe/Moscow"],["Псков",57.819,28.332,"Europe/Moscow"],["Пугачев",52.016,48.797,"Europe/Saratov"],["Пудож",61.806,36.533,"Europe/Moscow"],["Пустошка",56.337,29.367,"Europe/Moscow"],["Пучеж",56.982,43.168,"Europe/Moscow"],["Пушкино",56.01,37.847,"Europe/Moscow"],["Пущино",54.832,37.621,"Europe/Moscow"],["Пыталово",57.064,27.924,"Europe/Moscow"],["Пыть-Ях",60.759,72.837,"Asia/Yekaterinburg"],["Пятигорск",44.041,43.066,"Europe/Moscow"],["Радужный",55.996,40.332,"Europe/Moscow"],["Радужный",62.134,77.458,"Asia/Yekaterinburg"],["Райчихинск",49.794,129.411,"Asia/Yakutsk"],["Раменское",55.55,38.273,"Europe/Moscow"],["Рассказово",52.654,41.874,"Europe/Moscow"],["Ревда",56.799,59.907,"Asia/Yekaterinburg"],["Реж",57.372,61.383,"Asia/Yekaterinburg"],["Реутов",55.758,37.862,"Europe/Moscow"],["Ржев",56.263,34.329,"Europe/Moscow"],["Родники",57.103,41.73,"Europe/Moscow"],["Рославль",53.945,32.848,"Europe/Moscow"],["Россошь",50.17,39.623,"Europe/Moscow"],["Ростов",57.205,39.438,"Europe/Moscow"],["Ростов-на-Дону",47.222,39.719,"Europe/Moscow"],["Рошаль",55.663,39.866,"Europe/Moscow"],["Ртищево",52.262,43.784,"Europe/Saratov"],["Рубцовск",51.501,81.208,"Asia/Barnaul"],["Рудня",54.944,31.079,"Europe/Moscow"],["Руза",55.701,36.196,"Europe/Moscow"],["Рузаевка",54.058,44.949,"Europe/Moscow"],["Рыбинск",58.049,38.858,"Europe/Moscow"],["Рыбное",54.726,39.513,"Europe/Moscow"],["Рыльск",51.568,34.68,"Europe/Moscow"],["Ряжск",53.707,40.052,"Europe/Moscow"],["Рязань",54.625,39.736,"Europe/Moscow"],["Саки",45.134,33.603,"Europe/Simferopol"],["Салават",53.362,55.925,"Asia/Yekaterinburg"],["Салаир",54.235,85.803,"Asia/Novokuznetsk"],["Салехард",66.549,66.609,"Asia/Yekaterinburg"],["Сальск",46.475,41.541,"Europe/Moscow"],["Самара",53.195,50.107,"Europe/Samara"],["Санкт-Петербург",59.939,30.316,"Europe/Moscow"],["Саранск",54.181,45.186,"Europe/Moscow"],["Сарапул",56.462,53.804,"Europe/Samara"],["Саратов",51.534,46.034,"Europe/Saratov"],["Саров",54.923,43.345,"Europe/Moscow"],["Сасово",54.351,41.912,"Europe/Moscow"],["Сатка",55.041,59.029,"Asia/Yekaterinburg"],["Сафоново",55.12,33.234,"Europe/Moscow"],["Саяногорск",53.101,91.412,"Asia/Krasnoyarsk"],["Саянск",54.111,102.18,"Asia/Irkutsk"],["Светлогорск",54.944,20.151,"Europe/Kaliningrad"],["Светлоград",45.329,42.857,"Europe/Moscow"],["Светлый",54.677,20.136,"Europe/Kaliningrad"],["Светогорск",61.111,28.873,"Europe/Moscow"],["Свирск",53.084,103.336,"Asia/Irkutsk"],["Свободный",51.361,128.122,"Asia/Yakutsk"],["Себеж",56.291,28.472,"Europe/Moscow"],["Севастополь",44.617,33.525,"Europe/Simferopol"],["Северо-Курильск",50.673,156.128,"Asia/Sakhalin"],["Северобайкальск",55.636,109.336,"Asia/Irkutsk"],["Северодвинск",64.563,39.818,"Europe/Moscow"],["Североморск",69.077,33.418,"Europe/Moscow"],["Североуральск",60.153,59.953,"Asia/Yekaterinburg"],["Северск",56.603,84.881,"Asia/Tomsk"],["Севск",52.148,34.492,"Europe/Moscow"],["Сегежа",63.744,34.313,"Europe/Moscow"],["Сельцо",53.374,34.106,"Europe/Moscow"],["Семенов",56.789,44.49,"Europe/Moscow"],["Семикаракорск",47.518,40.811,"Europe/Moscow"],["Семилуки",51.695,39.019,"Europe/Moscow"],["Сенгилей",53.959,48.777,"Europe/Ulyanovsk"],["Серафимович",49.566,42.736,"Europe/Volgograd"],["Сергач",55.52,45.481,"Europe/Moscow"],["Сергиев Посад",56.306,38.15,"Europe/Moscow"],["Сердобск",52.47,44.212,"Europe/Moscow"],["Серов",59.605,60.575,"Asia/Yekaterinburg"],["Серпухов",54.923,37.403,"Europe/Moscow"],["Сертолово",60.145,30.21,"Europe/Moscow"],["Сибай",52.72,58.666,"Asia/Yekaterinburg"],["Сим",54.991,57.69,"Asia/Yekaterinburg"],["Симферополь",44.948,34.1,"Europe/Simferopol"],["Сковородино",53.987,123.944,"Asia/Yakutsk"],["Скопин",53.824,39.549,"Europe/Moscow"],["Славгород",52.999,78.646,"Asia/Barnaul"],["Славск",55.045,21.674,"Europe/Kaliningrad"],["Славянск-на-Кубани",45.26,38.126,"Europe/Moscow"],["Сланцы",59.118,28.088,"Europe/Moscow"],["Слободской",58.731,50.167,"Europe/Kirov"],["Слюдянка",51.656,103.719,"Asia/Irkutsk"],["Смоленск",54.783,32.045,"Europe/Moscow"],["Снежинск",56.085,60.732,"Asia/Yekaterinburg"],["Снежногорск",69.192,33.238,"Europe/Moscow"],["Собинка",55.994,40.018,"Europe/Moscow"],["Советск",55.081,21.889,"Europe/Kaliningrad"],["Советск",57.584,48.959,"Europe/Kirov"],["Советск",53.934,37.632,"Europe/Moscow"],["Советская Гавань",48.966,140.285,"Asia/Vladivostok"],["Советский",61.371,63.567,"Asia/Yekaterinburg"],["Сокол",59.476,40.111,"Europe/Moscow"],["Солигалич",59.078,42.288,"Europe/Moscow"],["Соликамск",59.648,56.771,"Asia/Yekaterinburg"],["Солнечногорск",56.185,36.978,"Europe/Moscow"],["Соль-Илецк",51.163,54.99,"Asia/Yekaterinburg"],["Сольвычегодск",61.332,46.92,"Europe/Moscow"],["Сольцы",58.12,30.309,"Europe/Moscow"],["Сорочинск",52.427,53.154,"Asia/Yekaterinburg"],["Сорск",54,90.259,"Asia/Krasnoyarsk"],["Сортавала",61.703,30.692,"Europe/Moscow"],["Сосенский",54.057,35.962,"Europe/Moscow"],["Сосновка",56.253,51.283,"Europe/Kirov"],["Сосновоборск",56.12,93.335,"Asia/Krasnoyarsk"],["Сосновый Бор",59.877,29.129,"Europe/Moscow"],["Сосногорск",63.599,53.876,"Europe/Moscow"],["Сочи",43.585,39.723,"Europe/Moscow"],["Спас-Деменск",54.41,34.019,"Europe/Moscow"],["Спас-Клепики",55.129,40.175,"Europe/Moscow"],["Спасск",53.927,43.186,"Europe/Moscow"],["Спасск-Дальний",44.59,132.816,"Asia/Vladivostok"],["Спасск-Рязанский",54.407,40.376,"Europe/Moscow"],["Среднеколымск",67.458,153.707,"Asia/Yakutsk"],["Среднеуральск",56.992,60.477,"Asia/Yekaterinburg"],["Сретенск",52.246,117.712,"Asia/Chita"],["Ставрополь",45.045,41.969,"Europe/Moscow"],["Старая Купавна",55.811,38.176,"Europe/Moscow"],["Старая Русса",57.991,31.355,"Europe/Moscow"],["Старица",56.515,34.934,"Europe/Moscow"],["Стародуб",52.585,32.76,"Europe/Moscow"],["Старый Крым",45.029,35.09,"Europe/Simferopol"],["Старый Оскол",51.297,37.835,"Europe/Moscow"],["Стерлитамак",53.63,55.932,"Asia/Yekaterinburg"],["Стрежевой",60.733,77.604,"Asia/Tomsk"],["Строитель",50.785,36.489,"Europe/Moscow"],["Струнино",56.375,38.584,"Europe/Moscow"],["Ступино",54.886,38.078,"Europe/Moscow"],["Суворов",54.134,36.481,"Europe/Moscow"],["Судак",44.85,34.976,"Europe/Simferopol"],["Суджа",51.192,35.272,"Europe/Moscow"],["Судогда",55.95,40.856,"Europe/Moscow"],["Суздаль",56.427,40.453,"Europe/Moscow"],["Сунжа",43.32,45.048,"Europe/Moscow"],["Суоярви",62.079,32.35,"Europe/Moscow"],["Сураж",53.017,32.394,"Europe/Moscow"],["Сургут",61.254,73.396,"Asia/Yekaterinburg"],["Суровикино",48.619,42.854,"Europe/Volgograd"],["Сурск",53.076,45.691,"Europe/Moscow"],["Сусуман",62.781,148.154,"Asia/Magadan"],["Сухиничи",54.097,35.344,"Europe/Moscow"],["Сухой Лог",56.908,62.036,"Asia/Yekaterinburg"],["Сызрань",53.156,48.474,"Europe/Samara"],["Сыктывкар",61.669,50.836,"Europe/Moscow"],["Сысерть",56.501,60.819,"Asia/Yekaterinburg"],["Сычевка",55.831,34.278,"Europe/Moscow"],["Сясьстрой",60.14,32.56,"Europe/Moscow"],["Тавда",58.043,65.274,"Asia/Yekaterinburg"],["Таганрог",47.209,38.935,"Europe/Moscow"],["Тайга",56.062,85.621,"Asia/Novokuznetsk"],["Тайшет",55.941,98.003,"Asia/Irkutsk"],["Талдом",56.731,37.528,"Europe/Moscow"],["Талица",57.012,63.732,"Asia/Yekaterinburg"],["Тамбов",52.721,41.452,"Europe/Moscow"],["Тара",56.916,74.365,"Asia/Omsk"],["Тарко-Сале",64.912,77.761,"Asia/Yekaterinburg"],["Таруса",54.724,37.167,"Europe/Moscow"],["Татарск",55.215,75.974,"Asia/Novosibirsk"],["Таштагол",52.759,87.848,"Asia/Novokuznetsk"],["Тверь",56.859,35.912,"Europe/Moscow"],["Теберда",43.444,41.742,"Europe/Moscow"],["Тейково",56.854,40.535,"Europe/Moscow"],["Темников",54.631,43.216,"Europe/Moscow"],["Темрюк",45.261,37.445,"Europe/Moscow"],["Терек",43.484,44.14,"Europe/Moscow"],["Тетюши",54.937,48.831,"Europe/Moscow"],["Тимашевск",45.616,38.935,"Europe/Moscow"],["Тихвин",59.627,33.507,"Europe/Moscow"],["Тихорецк",45.855,40.126,"Europe/Moscow"],["Тобольск",58.202,68.254,"Asia/Yekaterinburg"],["Тогучин",55.225,84.41,"Asia/Novosibirsk"],["Тольятти",53.521,49.389,"Europe/Samara"],["Томари",47.762,142.062,"Asia/Sakhalin"],["Томмот",58.959,126.288,"Asia/Yakutsk"],["Томск",56.485,84.948,"Asia/Tomsk"],["Топки",55.276,85.615,"Asia/Novokuznetsk"],["Торжок",57.041,34.96,"Europe/Moscow"],["Торопец",56.501,31.636,"Europe/Moscow"],["Тосно",59.541,30.878,"Europe/Moscow"],["Тотьма",59.973,42.759,"Europe/Moscow"],["Трехгорный",54.818,58.446,"Asia/Yekaterinburg"],["Троицк",54.084,61.559,"Asia/Yekaterinburg"],["Трубчевск",52.579,33.766,"Europe/Moscow"],["Туапсе",44.111,39.082,"Europe/Moscow"],["Туймазы",54.6,53.695,"Asia/Yekaterinburg"],["Тула",54.192,37.615,"Europe/Moscow"],["Тулун",54.557,100.578,"Asia/Irkutsk"],["Туран",52.145,93.917,"Asia/Krasnoyarsk"],["Туринск",58.039,63.698,"Asia/Yekaterinburg"],["Тутаев",57.867,39.537,"Europe/Moscow"],["Тында",55.155,124.747,"Asia/Yakutsk"],["Тырныауз",43.398,42.921,"Europe/Moscow"],["Тюкалинск",55.87,72.195,"Asia/Omsk"],["Тюмень",57.153,65.534,"Asia/Yekaterinburg"],["Уварово",51.977,42.253,"Europe/Moscow"],["Углегорск",49.082,142.069,"Asia/Sakhalin"],["Углич",57.522,38.302,"Europe/Moscow"],["Удачный",66.407,112.306,"Asia/Yakutsk"],["Удомля",57.879,35.017,"Europe/Moscow"],["Ужур",55.314,89.833,"Asia/Krasnoyarsk"],["Узловая",53.973,38.176,"Europe/Moscow"],["Улан-Удэ",51.834,107.584,"Asia/Irkutsk"],["Ульяновск",54.308,48.375,"Europe/Ulyanovsk"],["Унеча",52.846,32.676,"Europe/Moscow"],["Урай",60.13,64.804,"Asia/Yekaterinburg"],["Урень",57.461,45.783,"Europe/Moscow"],["Уржум",57.11,50.006,"Europe/Kirov"],["Урус-Мартан",43.12,45.539,"Europe/Moscow"],["Урюпинск",50.79,42.029,"Europe/Volgograd"],["Усинск",65.994,57.557,"Europe/Moscow"],["Усмань",52.044,39.726,"Europe/Moscow"],["Усолье",59.428,56.684,"Asia/Yekaterinburg"],["Усолье-Сибирское",52.757,103.639,"Asia/Irkutsk"],["Уссурийск",43.797,131.952,"Asia/Vladivostok"],["Усть-Джегута",44.084,41.971,"Europe/Moscow"],["Усть-Илимск",57.943,102.742,"Asia/Irkutsk"],["Усть-Катав",54.926,58.153,"Asia/Yekaterinburg"],["Усть-Кут",56.793,105.776,"Asia/Irkutsk"],["Усть-Лабинск",45.223,39.693,"Europe/Moscow"],["Устюжна",58.838,36.443,"Europe/Moscow"],["Уфа",54.735,55.958,"Asia/Yekaterinburg"],["Ухта",63.557,53.701,"Europe/Moscow"],["Учалы",54.307,59.413,"Asia/Yekaterinburg"],["Уяр",55.813,94.328,"Asia/Krasnoyarsk"],["Фатеж",52.092,35.854,"Europe/Moscow"],["Феодосия",45.032,35.382,"Europe/Simferopol"],["Фокино",53.455,34.416,"Europe/Moscow"],["Фокино",42.971,132.411,"Asia/Vladivostok"],["Фролово",49.765,43.665,"Europe/Volgograd"],["Фрязино",55.959,38.041,"Europe/Moscow"],["Фурманов",57.254,41.105,"Europe/Moscow"],["Хабаровск",48.465,135.06,"Asia/Vladivostok"],["Хадыженск",44.412,39.532,"Europe/Moscow"],["Ханты-Мансийск",61.002,69.018,"Asia/Yekaterinburg"],["Харабали",47.409,47.253,"Europe/Astrakhan"],["Харовск",59.948,40.2,"Europe/Moscow"],["Хасавюрт",43.25,46.585,"Europe/Moscow"],["Хвалынск",52.495,48.105,"Europe/Saratov"],["Хилок",51.363,110.459,"Asia/Chita"],["Химки",55.889,37.43,"Europe/Moscow"],["Холм",57.145,31.179,"Europe/Moscow"],["Холмск",47.041,142.042,"Asia/Sakhalin"],["Хотьково",56.252,37.94,"Europe/Moscow"],["Цивильск",55.865,47.473,"Europe/Moscow"],["Цимлянск",47.648,42.093,"Europe/Moscow"],["Циолковский",51.762,128.122,"Asia/Yakutsk"],["Чадан",51.284,91.579,"Asia/Krasnoyarsk"],["Чайковский",56.778,54.148,"Asia/Yekaterinburg"],["Чапаевск",52.929,49.867,"Europe/Samara"],["Чаплыгин",53.24,39.967,"Europe/Moscow"],["Чебаркуль",54.982,60.377,"Asia/Yekaterinburg"],["Чебоксары",56.144,47.249,"Europe/Moscow"],["Чегем",43.567,43.587,"Europe/Moscow"],["Чекалин",54.098,36.247,"Europe/Moscow"],["Челябинск",55.16,61.401,"Asia/Yekaterinburg"],["Чердынь",60.401,56.48,"Asia/Yekaterinburg"],["Черемхово",53.137,103.09,"Asia/Irkutsk"],["Черепаново",54.221,83.372,"Asia/Novosibirsk"],["Череповец",59.127,37.909,"Europe/Moscow"],["Черкесск",44.227,42.047,"Europe/Moscow"],["Чермоз",58.784,56.151,"Asia/Yekaterinburg"],["Черноголовка",56.01,38.379,"Europe/Moscow"],["Черногорск",53.826,91.326,"Asia/Krasnoyarsk"],["Чернушка",56.516,56.076,"Asia/Yekaterinburg"],["Черняховск",54.624,21.797,"Europe/Kaliningrad"],["Чехов",55.151,37.453,"Europe/Moscow"],["Чистополь",55.37,50.629,"Europe/Moscow"],["Чита",52.034,113.499,"Asia/Chita"],["Чкаловск",56.765,43.242,"Europe/Moscow"],["Чудово",59.125,31.687,"Europe/Moscow"],["Чулым",55.091,80.959,"Asia/Novosibirsk"],["Чусовой",58.297,57.819,"Asia/Yekaterinburg"],["Чухлома",58.753,42.688,"Europe/Moscow"],["Шагонар",51.535,92.92,"Asia/Krasnoyarsk"],["Шадринск",56.087,63.63,"Asia/Yekaterinburg"],["Шали",43.149,45.901,"Europe/Moscow"],["Шарыпово",55.539,89.18,"Asia/Krasnoyarsk"],["Шарья",58.376,45.406,"Europe/Moscow"],["Шатура",55.578,39.545,"Europe/Moscow"],["Шахты",47.709,40.216,"Europe/Moscow"],["Шахунья",57.676,46.613,"Europe/Moscow"],["Шацк",54.029,41.718,"Europe/Moscow"],["Шебекино",50.4,36.888,"Europe/Moscow"],["Шелехов",52.21,104.097,"Asia/Irkutsk"],["Шенкурск",62.106,42.9,"Europe/Moscow"],["Шилка",51.85,116.033,"Asia/Chita"],["Шимановск",52.005,127.701,"Asia/Yakutsk"],["Шиханы",52.115,47.202,"Europe/Saratov"],["Шлиссельбург",59.944,31.033,"Europe/Moscow"],["Шумерля",55.496,46.418,"Europe/Moscow"],["Шумиха",55.228,63.29,"Asia/Yekaterinburg"],["Шуя",56.856,41.38,"Europe/Moscow"],["Щекино",54.002,37.518,"Europe/Moscow"],["Щелкино",45.429,35.825,"Europe/Simferopol"],["Щелково",55.923,37.978,"Europe/Moscow"],["Щигры",51.879,36.891,"Europe/Moscow"],["Щучье",55.209,62.748,"Asia/Yekaterinburg"],["Электрогорск",55.878,38.781,"Europe/Moscow"],["Электросталь",55.785,38.445,"Europe/Moscow"],["Электроугли",55.717,38.219,"Europe/Moscow"],["Элиста",46.308,44.27,"Europe/Moscow"],["Энгельс",51.485,46.127,"Europe/Saratov"],["Эртиль",51.831,40.807,"Europe/Moscow"],["Югорск",61.312,63.337,"Asia/Yekaterinburg"],["Южа",56.593,42.046,"Europe/Moscow"],["Южно-Сахалинск",46.959,142.738,"Asia/Sakhalin"],["Южно-Сухокумск",44.66,45.65,"Europe/Moscow"],["Южноуральск",54.449,61.258,"Asia/Yekaterinburg"],["Юрга",55.72,84.889,"Asia/Novokuznetsk"],["Юрьев-Польский",56.494,39.668,"Europe/Moscow"],["Юрьевец",57.318,43.111,"Europe/Moscow"],["Юрюзань",54.855,58.423,"Asia/Yekaterinburg"],["Юхнов",54.745,35.242,"Europe/Moscow"],["Ядрин",55.941,46.202,"Europe/Moscow"],["Якутск",62.028,129.733,"Asia/Yakutsk"],["Ялта",44.495,34.166,"Europe/Simferopol"],["Ялуторовск",56.655,66.312,"Asia/Yekaterinburg"],["Янаул",56.265,54.93,"Asia/Yekaterinburg"],["Яранск",57.304,47.848,"Europe/Kirov"],["Яровое",52.925,78.573,"Asia/Barnaul"],["Ярославль",57.622,39.898,"Europe/Moscow"],["Ярцево",55.056,32.69,"Europe/Moscow"],["Ясногорск",54.48,37.69,"Europe/Moscow"],["Ясный",51.037,59.874,"Asia/Yekaterinburg"],["Яхрома",56.289,37.483,"Europe/Moscow"]];
+  var WORLD_CITIES=[
+    ["Москва",55.754,37.62,"Europe/Moscow"],
+    ["Киев",50.4501,30.5234,"Europe/Kyiv"],["Харьков",49.9935,36.2304,"Europe/Kyiv"],["Одесса",46.4825,30.7233,"Europe/Kyiv"],["Днепр",48.4647,35.0462,"Europe/Kyiv"],["Львов",49.8397,24.0297,"Europe/Kyiv"],["Запорожье",47.8388,35.1396,"Europe/Kyiv"],["Кривой Рог",47.9105,33.3918,"Europe/Kyiv"],["Николаев",46.975,31.9946,"Europe/Kyiv"],["Винница",49.2331,28.4682,"Europe/Kyiv"],["Полтава",49.5883,34.5514,"Europe/Kyiv"],["Чернигов",51.4982,31.2893,"Europe/Kyiv"],["Черкассы",49.4444,32.0598,"Europe/Kyiv"],["Житомир",50.2547,28.6587,"Europe/Kyiv"],["Сумы",50.9077,34.7981,"Europe/Kyiv"],["Хмельницкий",49.4229,26.9871,"Europe/Kyiv"],["Ивано-Франковск",48.9226,24.7111,"Europe/Kyiv"],["Тернополь",49.5535,25.5948,"Europe/Kyiv"],["Луцк",50.7472,25.3254,"Europe/Kyiv"],["Ужгород",48.6208,22.2879,"Europe/Kyiv"],["Ровно",50.6199,26.2516,"Europe/Kyiv"],["Кропивницкий",48.5079,32.2623,"Europe/Kyiv"],["Мариуполь",47.0971,37.5434,"Europe/Kyiv"],
+    ["Минск",53.9006,27.559,"Europe/Minsk"],["Гомель",52.4345,30.9754,"Europe/Minsk"],["Могилев",53.9007,30.3314,"Europe/Minsk"],["Витебск",55.1904,30.2049,"Europe/Minsk"],["Гродно",53.6694,23.8131,"Europe/Minsk"],["Брест",52.0975,23.7341,"Europe/Minsk"],["Бобруйск",53.1384,29.2214,"Europe/Minsk"],["Барановичи",53.1327,26.0139,"Europe/Minsk"],["Пинск",52.1229,26.0951,"Europe/Minsk"],["Орша",54.5081,30.4172,"Europe/Minsk"],["Мозырь",52.0495,29.2456,"Europe/Minsk"],["Солигорск",52.7876,27.5426,"Europe/Minsk"],
+    ["Алматы",43.222,76.8512,"Asia/Almaty"],["Астана",51.1694,71.4491,"Asia/Almaty"],["Шымкент",42.3417,69.5901,"Asia/Almaty"],["Караганда",49.8047,73.1094,"Asia/Almaty"],["Актобе",50.2839,57.167,"Asia/Aqtobe"],["Тараз",42.9,71.3667,"Asia/Almaty"],["Павлодар",52.2873,76.9674,"Asia/Almaty"],["Усть-Каменогорск",49.9787,82.6014,"Asia/Almaty"],["Семей",50.4113,80.2275,"Asia/Almaty"],["Атырау",47.0945,51.9238,"Asia/Atyrau"],["Костанай",53.2144,63.6246,"Asia/Qostanay"],["Кызылорда",44.8479,65.5093,"Asia/Qyzylorda"],["Уральск",51.2223,51.3868,"Asia/Oral"],["Петропавловск",54.8753,69.1628,"Asia/Almaty"],["Актау",43.6525,51.1575,"Asia/Aqtau"],["Кокшетау",53.2833,69.3833,"Asia/Almaty"],["Талдыкорган",45.0161,78.3739,"Asia/Almaty"],
+    ["Ташкент",41.2995,69.2401,"Asia/Tashkent"],["Самарканд",39.627,66.975,"Asia/Samarkand"],["Наманган",40.9983,71.6726,"Asia/Tashkent"],["Андижан",40.7821,72.3442,"Asia/Tashkent"],["Бухара",39.7686,64.4556,"Asia/Samarkand"],["Нукус",42.4531,59.6103,"Asia/Samarkand"],["Фергана",40.3864,71.7864,"Asia/Tashkent"],["Коканд",40.5286,70.9425,"Asia/Tashkent"],["Карши",38.8606,65.7975,"Asia/Samarkand"],["Ургенч",41.55,60.6333,"Asia/Samarkand"],
+    ["Бишкек",42.8746,74.5698,"Asia/Bishkek"],["Ош",40.5283,72.7985,"Asia/Bishkek"],["Джалал-Абад",40.9333,73,"Asia/Bishkek"],["Каракол",42.4907,78.3936,"Asia/Bishkek"],
+    ["Душанбе",38.5598,68.787,"Asia/Dushanbe"],["Худжанд",40.2833,69.6333,"Asia/Dushanbe"],["Бохтар",37.8364,68.7803,"Asia/Dushanbe"],["Куляб",37.9167,69.7833,"Asia/Dushanbe"],
+    ["Ашхабад",37.9601,58.3261,"Asia/Ashgabat"],["Туркменабат",39.0733,63.5786,"Asia/Ashgabat"],["Дашогуз",41.8363,59.9663,"Asia/Ashgabat"],["Мары",37.5936,61.8303,"Asia/Ashgabat"],
+    ["Баку",40.4093,49.8671,"Asia/Baku"],["Гянджа",40.6828,46.3606,"Asia/Baku"],["Сумгаит",40.5892,49.6686,"Asia/Baku"],["Мингечевир",40.77,47.05,"Asia/Baku"],["Нахичевань",39.209,45.412,"Asia/Baku"],
+    ["Ереван",40.1792,44.4991,"Asia/Yerevan"],["Гюмри",40.7894,43.8475,"Asia/Yerevan"],["Ванадзор",40.8128,44.4883,"Asia/Yerevan"],
+    ["Тбилиси",41.7151,44.8271,"Asia/Tbilisi"],["Батуми",41.6168,41.6367,"Asia/Tbilisi"],["Кутаиси",42.2679,42.6946,"Asia/Tbilisi"],["Рустави",41.5492,45.0043,"Asia/Tbilisi"],["Сухуми",43.0032,41.0152,"Asia/Tbilisi"],
+    ["Кишинёв",47.0105,28.8638,"Europe/Chisinau"],["Тирасполь",46.8403,29.6433,"Europe/Chisinau"],["Бельцы",47.7615,27.9292,"Europe/Chisinau"],["Бендеры",46.8228,29.4744,"Europe/Chisinau"],
+    ["Рига",56.9496,24.1052,"Europe/Riga"],["Даугавпилс",55.8747,26.5364,"Europe/Riga"],["Вильнюс",54.6872,25.2797,"Europe/Vilnius"],["Каунас",54.8985,23.9036,"Europe/Vilnius"],["Клайпеда",55.7033,21.1443,"Europe/Vilnius"],["Таллин",59.437,24.7536,"Europe/Tallinn"],["Тарту",58.378,26.729,"Europe/Tallinn"],
+    ["Стамбул",41.0082,28.9784,"Europe/Istanbul"],["Анкара",39.9334,32.8597,"Europe/Istanbul"],["Анталья",36.8969,30.7133,"Europe/Istanbul"],["Измир",38.4237,27.1428,"Europe/Istanbul"],["Аланья",36.5438,31.9997,"Europe/Istanbul"],
+    ["Тель-Авив",32.0853,34.7818,"Asia/Jerusalem"],["Иерусалим",31.7683,35.2137,"Asia/Jerusalem"],["Хайфа",32.794,34.9896,"Asia/Jerusalem"],["Нетания",32.3215,34.8532,"Asia/Jerusalem"],["Бат-Ям",32.0171,34.7457,"Asia/Jerusalem"],["Ашдод",31.8014,34.6435,"Asia/Jerusalem"],["Беэр-Шева",31.2518,34.7913,"Asia/Jerusalem"],
+    ["Дубай",25.2048,55.2708,"Asia/Dubai"],["Абу-Даби",24.4539,54.3773,"Asia/Dubai"],["Шарджа",25.3463,55.4209,"Asia/Dubai"],
+    ["Берлин",52.52,13.405,"Europe/Berlin"],["Мюнхен",48.1351,11.582,"Europe/Berlin"],["Гамбург",53.5511,9.9937,"Europe/Berlin"],["Франкфурт-на-Майне",50.1109,8.6821,"Europe/Berlin"],["Кёльн",50.9375,6.9603,"Europe/Berlin"],["Дюссельдорф",51.2277,6.7735,"Europe/Berlin"],
+    ["Лондон",51.5074,-0.1278,"Europe/London"],["Манчестер",53.4808,-2.2426,"Europe/London"],
+    ["Париж",48.8566,2.3522,"Europe/Paris"],["Ницца",43.7102,7.262,"Europe/Paris"],["Мадрид",40.4168,-3.7038,"Europe/Madrid"],["Барселона",41.3874,2.1686,"Europe/Madrid"],["Рим",41.9028,12.4964,"Europe/Rome"],["Милан",45.4642,9.19,"Europe/Rome"],["Вена",48.2082,16.3738,"Europe/Vienna"],["Прага",50.0755,14.4378,"Europe/Prague"],["Варшава",52.2297,21.0122,"Europe/Warsaw"],["Амстердам",52.3676,4.9041,"Europe/Amsterdam"],["Брюссель",50.8503,4.3517,"Europe/Brussels"],["Лиссабон",38.7223,-9.1393,"Europe/Lisbon"],["Афины",37.9838,23.7275,"Europe/Athens"],["Хельсинки",60.1699,24.9384,"Europe/Helsinki"],["Стокгольм",59.3293,18.0686,"Europe/Stockholm"],["Будапешт",47.4979,19.0402,"Europe/Budapest"],["София",42.6977,23.3219,"Europe/Sofia"],["Белград",44.7866,20.4489,"Europe/Belgrade"],["Цюрих",47.3769,8.5417,"Europe/Zurich"],
+    ["Никосия",35.1856,33.3823,"Asia/Nicosia"],["Лимасол",34.7071,33.0226,"Asia/Nicosia"],["Ларнака",34.9163,33.6297,"Asia/Nicosia"],["Пафос",34.7754,32.4245,"Asia/Nicosia"],
+    ["Нью-Йорк",40.7128,-74.006,"America/New_York"],["Лос-Анджелес",34.0522,-118.2437,"America/Los_Angeles"],["Чикаго",41.8781,-87.6298,"America/Chicago"],["Майами",25.7617,-80.1918,"America/New_York"],["Сан-Франциско",37.7749,-122.4194,"America/Los_Angeles"],["Бостон",42.3601,-71.0589,"America/New_York"],["Сиэтл",47.6062,-122.3321,"America/Los_Angeles"],["Хьюстон",29.7604,-95.3698,"America/Chicago"],["Торонто",43.6532,-79.3832,"America/Toronto"],["Ванкувер",49.2827,-123.1207,"America/Vancouver"],
+    ["Бангкок",13.7563,100.5018,"Asia/Bangkok"],["Пхукет",7.8804,98.3923,"Asia/Bangkok"],["Паттайя",12.9236,100.8825,"Asia/Bangkok"],["Пекин",39.9042,116.4074,"Asia/Shanghai"],["Шанхай",31.2304,121.4737,"Asia/Shanghai"],["Дели",28.6139,77.209,"Asia/Kolkata"],["Мумбаи",19.076,72.8777,"Asia/Kolkata"],["Гоа",15.2993,74.124,"Asia/Kolkata"],["Токио",35.6762,139.6503,"Asia/Tokyo"],["Сеул",37.5665,126.978,"Asia/Seoul"],["Денпасар (Бали)",-8.6705,115.2126,"Asia/Makassar"],["Джакарта",-6.2088,106.8456,"Asia/Jakarta"],["Сингапур",1.3521,103.8198,"Asia/Singapore"],["Ханой",21.0278,105.8342,"Asia/Ho_Chi_Minh"],["Хошимин",10.8231,106.6297,"Asia/Ho_Chi_Minh"],["Дубай",25.2048,55.2708,"Asia/Dubai"],
+    ["Каир",30.0444,31.2357,"Africa/Cairo"],["Хургада",27.2579,33.8116,"Africa/Cairo"],["Шарм-эль-Шейх",27.9158,34.33,"Africa/Cairo"],
+    ["Улан-Батор",47.8864,106.9057,"Asia/Ulaanbaatar"]
+  ];
+  var CITIES=RU_CITIES.concat(WORLD_CITIES);
+
+  function fold(s){return s.toLowerCase().replace(/ё/g,'е').replace(/[- ]/g,'');}
+  var cityIndex=CITIES.map(function(c){return {name:c[0],lat:c[1],lon:c[2],tz:c[3],key:fold(c[0])};});
+
+  var cityEl=document.getElementById('city'), dropEl=document.getElementById('drop'),
+      cityMeta=document.getElementById('cityMeta'), manualBox=document.getElementById('manualBox'),
+      manualToggle=document.getElementById('manualToggle'),
+      latEl=document.getElementById('lat'), lonEl=document.getElementById('lon'), tzEl=document.getElementById('tz');
+  var selectedCity=null, activeIdx=-1, matches=[];
+
+  var _offCache={};
+  function tzShort(iana){
+    if(_offCache[iana]!=null) return _offCache[iana];
+    var o=zoneOffsetAtUTC(iana, Date.now());
+    var s=(o==null)?iana.split('/').pop().replace(/_/g,' '):('UTC'+(o>=0?'+':'')+(o%1===0?o:o.toFixed(1)));
+    _offCache[iana]=s; return s;
+  }
+
+  function renderDrop(){
+    if(!matches.length){dropEl.classList.remove('show');cityEl.setAttribute('aria-expanded','false');return;}
+    dropEl.innerHTML=matches.map(function(m,i){
+      return '<div role="option" data-i="'+i+'" class="'+(i===activeIdx?'active':'')+'">'+m.name+' <span class="reg">'+tzShort(m.tz)+'</span></div>';
+    }).join('');
+    dropEl.classList.add('show');
+    cityEl.setAttribute('aria-expanded','true');
+  }
+  function search(q){
+    var f=fold(q);
+    if(f.length<2){matches=[];renderDrop();return;}
+    var starts=[], contains=[];
+    for(var i=0;i<cityIndex.length;i++){
+      var k=cityIndex[i].key;
+      if(k.indexOf(f)===0) starts.push(cityIndex[i]);
+      else if(k.indexOf(f)>-1) contains.push(cityIndex[i]);
+      if(starts.length>=12) break;
+    }
+    matches=starts.concat(contains).slice(0,12);
+    activeIdx=-1;
+    renderDrop();
+  }
+  function pick(m){
+    selectedCity=m;
+    cityEl.value=m.name;
+    matches=[];renderDrop();
+    cityMeta.textContent='Часовой пояс подставится автоматически с учётом даты и летнего времени · координаты '+m.lat.toFixed(2)+', '+m.lon.toFixed(2);
+  }
+  cityEl.addEventListener('input',function(){selectedCity=null;cityMeta.textContent='';search(cityEl.value);});
+  cityEl.addEventListener('focus',function(){if(cityEl.value)search(cityEl.value);});
+  cityEl.addEventListener('keydown',function(e){
+    if(!matches.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();activeIdx=Math.min(activeIdx+1,matches.length-1);renderDrop();}
+    else if(e.key==='ArrowUp'){e.preventDefault();activeIdx=Math.max(activeIdx-1,0);renderDrop();}
+    else if(e.key==='Enter'&&activeIdx>=0){e.preventDefault();pick(matches[activeIdx]);}
+    else if(e.key==='Escape'){matches=[];renderDrop();}
+  });
+  dropEl.addEventListener('click',function(e){
+    var d=e.target.closest('[data-i]');if(!d)return;
+    pick(matches[+d.getAttribute('data-i')]);
+    cityEl.focus();
+  });
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('.citywrap')){matches=[];renderDrop();}
+  });
+  manualToggle.addEventListener('click',function(){
+    manualBox.classList.toggle('show');
+    manualToggle.textContent=manualBox.classList.contains('show')?'Скрыть ручной ввод':'Не нашли город? Указать координаты вручную';
+  });
+
+  var noTime=document.getElementById('noTime');
+  noTime.addEventListener('change',function(){ btHour.disabled=noTime.checked; btMin.disabled=noTime.checked; });
+
+  try{
+    var saved=JSON.parse(localStorage.getItem('vidhaya-signs')||'{}');
+    if(saved.d){bdDay.value=saved.d; bdMon.value=saved.mo; bdYear.value=saved.y;}
+    if(saved.h!=null){btHour.value=saved.h; btMin.value=saved.mi;}
+    if(saved.city){cityEl.value=saved.city;var mm=cityIndex.filter(function(x){return x.name===saved.city;});if(mm[0])pick(mm[0]);}
+  }catch(e){}
+
+  /* ============ ASTRO MATH ============ */
+  var D2R=Math.PI/180, R2D=180/Math.PI;
+  function norm(x){x=x%360;return x<0?x+360:x;}
+  function sind(x){return Math.sin(x*D2R);} function cosd(x){return Math.cos(x*D2R);} function tand(x){return Math.tan(x*D2R);}
+
+  function julianDay(y,m,d,hUT){if(m<=2){y-=1;m+=12;}var A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+    return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5+hUT/24;}
+  function deltaT(y){var t;
+    if(y>=2005&&y<2050){t=y-2000;return 62.92+0.32217*t+0.005589*t*t;}
+    if(y>=1986&&y<2005){t=y-2000;return 63.86+0.3345*t-0.060374*t*t+0.0017275*t*t*t+0.000651814*Math.pow(t,4)+0.00002373599*Math.pow(t,5);}
+    if(y>=1961&&y<1986){t=y-1975;return 45.45+1.067*t-t*t/260-t*t*t/718;}
+    if(y>=1920&&y<1961){t=y-1950;return 29.07+0.407*t-t*t/233+t*t*t/2547;}
+    return 64;}
+
+  var TERMS=[[0,0,1,0,6288774],[2,0,-1,0,1274027],[2,0,0,0,658314],[0,0,2,0,213618],[0,1,0,0,-185116],[0,0,0,2,-114332],[2,0,-2,0,58793],[2,-1,-1,0,57066],[2,0,1,0,53322],[2,-1,0,0,45758],[0,1,-1,0,-40923],[1,0,0,0,-34720],[0,1,1,0,-30383],[2,0,0,-2,15327],[0,0,1,2,-12528],[0,0,1,-2,10980],[4,0,-1,0,10675],[0,0,3,0,10034],[4,0,-2,0,8548],[2,1,-1,0,-7888],[2,1,0,0,-6766],[1,0,-1,0,-5163],[1,1,0,0,4987],[2,-1,1,0,4036],[2,0,2,0,3994],[4,0,0,0,3861],[2,0,-3,0,3665],[0,1,-2,0,-2689],[2,0,-1,2,-2602],[2,-1,-2,0,2390],[1,0,1,0,-2348],[2,-2,0,0,2236],[0,1,2,0,-2120],[0,2,0,0,-2069],[2,-2,-1,0,2048],[2,0,1,-2,-1773],[2,0,0,2,-1595],[4,-1,-1,0,1215],[0,0,2,2,-1110],[3,0,-1,0,-892],[2,1,1,0,-810],[4,-1,-2,0,759],[0,2,-1,0,-713],[2,2,-1,0,-700],[2,1,-2,0,691],[2,-1,0,-2,596],[4,0,1,0,549],[0,0,4,0,537],[4,-1,0,0,520],[1,0,-2,0,-487]];
+  function moonLon(T){
+    var Lp=norm(218.3164477+481267.88123421*T-0.0015786*T*T+T*T*T/538841-Math.pow(T,4)/65194000);
+    var Dm=norm(297.8501921+445267.1114034*T-0.0018819*T*T+T*T*T/545868-Math.pow(T,4)/113065000);
+    var Ms=norm(357.5291092+35999.0502909*T-0.0001536*T*T+T*T*T/24490000);
+    var Mp=norm(134.9633964+477198.8675055*T+0.0087414*T*T+T*T*T/69699-Math.pow(T,4)/14712000);
+    var F=norm(93.2720950+483202.0175233*T-0.0036539*T*T-T*T*T/3526000+Math.pow(T,4)/863310000);
+    var A1=norm(119.75+131.849*T), A2=norm(53.09+479264.290*T);
+    var E=1-0.002516*T-0.0000074*T*T, sum=0;
+    for(var i=0;i<TERMS.length;i++){
+      var t=TERMS[i], arg=t[0]*Dm+t[1]*Ms+t[2]*Mp+t[3]*F, c=t[4];
+      var e=Math.abs(t[1])===1?E:(Math.abs(t[1])===2?E*E:1);
+      sum+=c*e*Math.sin(arg*D2R);
+    }
+    sum+=3958*Math.sin(A1*D2R)+1962*Math.sin((Lp-F)*D2R)+318*Math.sin(A2*D2R);
+    return norm(Lp+sum/1000000);
+  }
+  function sunLon(T){
+    var L0=norm(280.46646+36000.76983*T+0.0003032*T*T);
+    var M=norm(357.52911+35999.05029*T-0.0001537*T*T);
+    var C=(1.914602-0.004817*T-0.000014*T*T)*sind(M)+(0.019993-0.000101*T)*sind(2*M)+0.000289*sind(3*M);
+    return norm(L0+C);
+  }
+  function ayanamsa(T){ return 23.85316+1.396971*T+0.0003086*T*T; }
+  function ascendant(jd,lat,lonEast){
+    var T=(jd-2451545.0)/36525;
+    var gmst=norm(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T-T*T*T/38710000);
+    var ramc=norm(gmst+lonEast);
+    var eps=23.4392911-0.0130042*T-1.64e-7*T*T+5.04e-7*T*T*T;
+    var y=cosd(ramc), x=-(sind(ramc)*cosd(eps)+tand(lat)*sind(eps));
+    return norm(Math.atan2(y,x)*R2D);
+  }
+
+  /* timezone offset (hours) for an IANA zone at a given LOCAL wall time */
+  function zoneOffsetAtUTC(iana, utcMs){
+    try{
+      var dtf=new Intl.DateTimeFormat('en-US',{timeZone:iana,timeZoneName:'longOffset',hour12:false,year:'numeric',month:'2-digit',day:'2-digit'});
+      var parts=dtf.formatToParts(new Date(utcMs));
+      var nm='';for(var i=0;i<parts.length;i++){if(parts[i].type==='timeZoneName')nm=parts[i].value;}
+      var m=nm.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+      if(!m){
+        var dtf2=new Intl.DateTimeFormat('en-US',{timeZone:iana,timeZoneName:'shortOffset',hour12:false});
+        var p2=dtf2.formatToParts(new Date(utcMs));var n2='';for(var j=0;j<p2.length;j++){if(p2[j].type==='timeZoneName')n2=p2[j].value;}
+        m=n2.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+      }
+      if(!m) return null;
+      var off=parseInt(m[2],10)+(m[3]?parseInt(m[3],10)/60:0);
+      return m[1]==='-'?-off:off;
+    }catch(e){ return null; }
+  }
+  function localToUT(iana, y,mo,da,hh,mm){
+    var guessUTC=Date.UTC(y,mo-1,da,hh,mm,0);
+    var off1=zoneOffsetAtUTC(iana, guessUTC);
+    if(off1==null) return null;
+    var off2=zoneOffsetAtUTC(iana, guessUTC-off1*3600000);
+    var off=(off2==null)?off1:off2;
+    return {utHours:hh+mm/60-off, off:off};
+  }
+
+  var RASI=[
+    ["Овен","Меша","♈"],["Телец","Вришабха","♉"],["Близнецы","Митхуна","♊"],
+    ["Рак","Карка","♋"],["Лев","Симха","♌"],["Дева","Канья","♍"],
+    ["Весы","Тула","♎"],["Скорпион","Вришчика","♏"],["Стрелец","Дхану","♐"],
+    ["Козерог","Макара","♑"],["Водолей","Кумбха","♒"],["Рыбы","Мина","♓"]
+  ];
+  var GEN=["Овна","Тельца","Близнецов","Рака","Льва","Девы","Весов","Скорпиона","Стрельца","Козерога","Водолея","Рыб"];
+  /* род/число знака: 0 — муж., 1 — жен., 2 — мн. (для «лунный/лунная/лунные ...») */
+  var GENDER=[0,0,2,0,0,1,2,0,0,0,0,2];
+  var FORMS={moon:["лунный","лунная","лунные"],lagna:["восходящий","восходящая","восходящие"],sun:["солнечный","солнечная","солнечные"]};
+  /* Краткое описание лунного знака (Чандра раши) — по классической джйотиш-традиции,
+     природа знака = управитель + стихия + достоинство Луны. Показывается всем. */
+  var SHORT_MOON=[
+    "Огненная, деятельная натура под управлением Марса. Вы чувствуете через действие и живёте на высокой скорости — вам важно первым начать, двигаться, побеждать. Покой приходит не в тишине, а в движении.",
+    "Экзальтация Луны — её самое сильное и ровное положение. Вы спокойны, терпеливы, верны, цените красоту, вкус и надёжность. Перемены и спешка даются тяжело: вам нужна твёрдая почва под ногами.",
+    "Живой, подвижный ум Меркурия, которому нужна пища — разговоры, книги, новости, люди. Свои чувства вы понимаете, когда проговорите их вслух. Без общения и новых впечатлений быстро скучаете.",
+    "Собственный знак Луны — чувства здесь в полную силу. Вы восприимчивы, заботливы, привязчивы, всё принимаете близко к сердцу. Настроение приливает и отступает волнами. Опора — дом, семья, вода, свои люди рядом.",
+    "Царственная, тёплая натура Солнца. Вам нужно светить: быть замеченным, уважаемым, вести за собой и опекать. Вы щедры и великодушны, но равнодушие ранит глубоко. Признание для вас — как воздух.",
+    "Точный, разборчивый ум Меркурия на земле. Вы видите детали и изъяны — в делах, в людях, в себе — и стремитесь к порядку и пользе. Тревога отступает, когда всё разложено по местам и вы кому-то реально помогли.",
+    "Венера в воздухе: вам нужны гармония, красота и мир вокруг. Ссоры и грубость выбивают надолго. Свои чувства вы понимаете через отношения и расцветаете рядом с приятными людьми; выбор в одиночку даётся трудно.",
+    "Падение Луны — её самое напряжённое положение. Чувства очень глубокие и закрытые, вы переживаете «до дна» и трудно отпускаете. Жизнь ведёт вас через кризисы и перерождения — и каждый раз вы выходите сильнее.",
+    "Юпитерианская натура — широкая и устремлённая. Вам нужны смысл, простор, вера и цель впереди. Настроение поднимают дорога, учёба, честный разговор о главном. Рамки, теснота и мелочность гасят вас быстрее всего.",
+    "Сдержанная, ответственная натура Сатурна. Вы рано повзрослели, держите чувства при себе, устойчивы там, где есть структура, дело и результат. Радость часто откладываете «на потом».",
+    "Сатурн в воздухе — вы наблюдаете свою жизнь немного со стороны. Вам нужны свобода, простор для идей и круг близких по духу. Давление, контроль и навязанные правила не выносите.",
+    "Юпитер в воде — предельно тонкая, впитывающая натура. Чужие состояния вы чувствуете как свои, легко растворяетесь в людях и теряете границы. Вам нужны мечта, вера, музыка и регулярное уединение."
+  ];
+  var MOON_TXT=[
+    "Марс делает вашу эмоциональную природу быстрой и горячей. Чувства вспыхивают мгновенно и так же быстро гаснут — злитесь открыто, но обиды не копите. Вам нужно быть первым, действовать, соревноваться; вынужденное ожидание изматывает сильнее всего. Сильные стороны — смелость, честность, инициатива; тень — резкость и нетерпение. Восстанавливаетесь в движении: спорт, дорога, физическая нагрузка, новое дело.",
+    "Телец — лучшее положение Луны, её экзальтация. Отсюда ваша ровность: вы спокойны, терпеливы, верны, вас трудно вывести из себя и трудно сдвинуть с места. Вам нужны надёжность и уют — привычный дом, вкусная еда, красивые вещи, деньги про запас. Спешка и перемены тревожат; тень — упрямство и привязанность к вещам и людям. Успокаиваетесь через тело: еда, сон, природа, тишина, руки в деле.",
+    "Меркурий делает ум быстрым, гибким и любопытным. Вы осмысляете чувства через слова — пока не проговорите или не напишете, сами не поймёте, что происходит внутри. Вам нужны общение, новизна, короткие переключения; однообразие гасит. Сильные стороны — сообразительность, лёгкость в контакте, юмор; тень — разбросанность и тревожность. Восстанавливаетесь в разговоре, книге, поездке, смене занятий.",
+    "Рак — собственный знак Луны, поэтому чувства здесь в полную силу. Вы восприимчивы, заботливы, привязчивы, всё принимаете близко и долго помните и хорошее, и плохое. Настроение меняется само, волнами, вслед за окружением и фазами Луны. Вам важны дом, семья, ощущение «своих». Тень — обидчивость и уход в раковину. Опора — дом, близкие, вода, забота о ком-то.",
+    "Солнце делает вашу натуру тёплой, щедрой и достойной. Вам нужно светить: быть замеченным и уважаемым, играть заметную роль, вести и опекать других. Вы верны и великодушны, но равнодушие и непризнание ранят глубоко, а гордость мешает это показать. Тень — потребность в постоянном одобрении. Восстанавливаетесь, когда вами восхищаются, когда вы в центре и можете дарить, вдохновлять, покровительствовать.",
+    "Меркурий на земной почве делает ум точным и разборчивым. Вы замечаете детали и несовершенства — в делах, в людях, в себе — и стремитесь всё улучшить и привести в порядок. Спокойствие приходит, когда дела разложены по полкам и вы кому-то конкретно помогли. Тень — самокритика, придирчивость, тревога по мелочам. Восстанавливаетесь через полезное действие: навести порядок, починить, разобрать, позаботиться о теле и режиме.",
+    "Венера в воздухе делает вас чувствительным к гармонии и к любому перекосу. Вам нужны мир, красота и приятная компания; резкость, грубость и ссоры выбивают надолго. Свои чувства вы понимаете через отношения — рядом с приятным человеком расцветаете, в одиночестве теряетесь. Тень — нерешительность и зависимость от чужого одобрения. Восстанавливаетесь в паре, в эстетике, в спокойной беседе, в красивой обстановке.",
+    "Скорпион — самое трудное положение Луны, её падение, поэтому чувства здесь мощные и спрятанные. Вы переживаете глубоко, «до дна», наружу выпускаете малую часть, трудно прощаете и отпускаете. Жизнь ведёт вас через кризисы и перерождения — и каждый раз вы выходите сильнее. Тень — ревность, подозрительность, самокопание. Восстанавливаетесь в уединении, тишине, честном разговоре без масок, глубокой внутренней работе.",
+    "Юпитер делает вашу натуру широкой и устремлённой. Вам нужны смысл, простор, вера во что-то большее и цель впереди; настроение поднимают дорога, учёба, разговор о главном. Рамки, теснота и мелочные придирки гасят вас быстрее всего. Сильные стороны — оптимизм, честность, щедрость; тень — прямолинейность и привычка обещать больше, чем успеваете. Восстанавливаетесь в движении к цели, на природе, в путешествии.",
+    "Сатурн делает эмоции сдержанными и управляемыми. Вы рано повзрослели, рано взяли ответственность, держите чувства при себе и не любите ими делиться. Устойчивость вам даёт структура — план, обязанности, видимый результат; без дела становится тревожно. Тень — суровость к себе, пессимизм, привычка откладывать радость «на потом». Опору и покой приносит работа, дающая ощущение твёрдой земли.",
+    "Сатурн в воздухе делает вас наблюдателем собственной жизни — вы чувствуете будто немного со стороны. Вам нужны свобода, пространство для идей и круг близких по духу. Давление, контроль и навязанные правила вы не выносите. Тень — эмоциональная отстранённость и упрямство. Восстанавливаетесь в общении по интересам, в работе с идеями и в одиночестве наедине с мыслями.",
+    "Юпитер в воде делает натуру предельно тонкой и проницаемой. Вы впитываете чужие состояния как свои, легко растворяетесь в людях и обстоятельствах, теряете границы. Вам нужны мечта, вера, музыка, творчество и регулярное уединение, чтобы прийти в себя. Тень — уход от реальности и жертвенность в ущерб себе. Восстанавливаетесь в тишине, у воды, во сне, в молитве и искусстве."
+  ];
+  var LAGNA_TXT=[
+    "Вы входите в жизнь напрямую и первым. Тело крепкое, энергии много, вы любите начинать и вести. Реагируете быстро, иногда резче, чем хотели. Жизнь учит вас терпению и умению доводить до конца, а не только стартовать.",
+    "Вы идёте по жизни неторопливо и основательно. Цените комфорт, красоту, устойчивость, деньги. Вас трудно сдвинуть и трудно остановить. Внешне спокойны, внутри упрямы. Ваша задача — не застывать и делиться, а не только копить.",
+    "Вы лёгкий, любопытный, общительный человек. Быстро схватываете, легко знакомитесь, много говорите. Тело подвижное, нервное. Есть склонность разбрасываться. Задача — выбирать одно и доводить, не распыляясь на всё сразу.",
+    "Вы входите в мир мягко и осторожно, сначала прощупываете почву. Заботливы, привязчивы, домашни, защищаете своих. Чувствительны к атмосфере. Задача — не прятаться в раковину при трудностях и строить свою опору, а не только чужую.",
+    "Вас замечают, даже когда вы молчите. Держитесь с достоинством, любите быть значимым и полезным. Великодушны, но вас задевает непризнание. Задача — вести по сути, а не ради аплодисментов, и признавать других так же, как хотите признания сами.",
+    "Вы внимательный, аккуратный, полезный человек. Замечаете, что не так, и чините. Скромны, склонны к самокритике и тревоге о деталях. Тело чувствительно к режиму и еде. Задача — служить, не изматывая себя, и видеть целое, а не только огрехи.",
+    "Вы приятный, тактичный, располагающий к себе человек. Тянетесь к партнёрству, красоте, справедливости. Выбор и конфликт даются тяжело. Задача — иметь свою опору и своё мнение, а не только подстраиваться ради мира.",
+    "У вас сильное присутствие и взгляд, который считывают. Вы закрыты, глубоки, стойки — проходите через кризисы и перерождаетесь. Задача — направлять свою силу в русло и больше доверять, а не держать всё под контролем и в тайне.",
+    "Вы открытый, прямой человек с внутренним огоньком. Тянетесь к знанию, вере, дороге, роли наставника. Любите свободу, не любите рамки. Задача — заземлять большие идеи в конкретные дела и держать слово, а не только вдохновлять.",
+    "Вы серьёзный, выдержанный, нацелены на результат. Рано взрослеете, идёте долго и упорно, признание приходит со временем. Задача — не превращать жизнь в сплошной труд и позволять себе тепло и радость по дороге.",
+    "Вы независимый, свободный, немного вне системы. Мыслите широко, тянетесь к людям и общему благу, но держите дистанцию. Задача — не только наблюдать и рассуждать, а быть в близких отношениях по-настоящему.",
+    "Вы мягкий, отзывчивый человек с тонкой связью со всем вокруг. Тянетесь к вере, состраданию, искусству, уединению. Легко жертвуете собой и теряете границы. Задача — держать берега и воплощать мечты, а не только мечтать."
+  ];
+  var SUN_TXT=["воля, инициатива, дух первопроходца.","устойчивость, ценность, обладание.","ум, слово, обмен.","дом, корни, забота.","достоинство, творчество, влияние.","труд, порядок, служение.","связи, равновесие, справедливость.","глубина, кризис, преображение.","смысл, вера, расширение.","цель, дисциплина, результат.","свобода, идеи, общее благо.","сострадание, растворение, дух."];
+
+  function fmtDeg(x){var d=Math.floor(x),m=Math.round((x-d)*60);if(m===60){m=0;d++;}return d+"°"+(m<10?"0":"")+m+"'";}
+  function boundaryNote(deg){
+    if(deg<0.5) return "Знак начался только что ("+fmtDeg(deg)+" от начала). Если время рождения неточное — проверьте: знак мог быть предыдущим.";
+    if(deg>29.5) return "Знак почти закончился ("+fmtDeg(30-deg)+" до конца). При неточном времени возможен следующий знак.";
+    return null;
+  }
+  function card(kindWord,kindRest,cls,idx,deg,extraWarn){
+    var r=RASI[idx];
+    var txt = cls==='moon'?MOON_TXT[idx] : cls==='lagna'?LAGNA_TXT[idx] : ("В характере — "+SUN_TXT[idx]);
+    var w = extraWarn || boundaryNote(deg);
+    var mark = cls==='moon'?'☾':cls==='lagna'?'⇡':'☉';
+    var adj = (FORMS[cls]||FORMS.moon)[GENDER[idx]];
+    var h='<div class="res '+cls+'"><div class="top"><span class="glyph">'+r[2]+'</span>'+
+      '<div><div class="kind">'+mark+'  '+kindRest+'</div><h3>Вы <span class="lead-word">'+adj+'</span> '+r[0]+'</h3>'+
+      '<div class="san">'+r[1]+' · '+fmtDeg(deg)+' в знаке</div></div>'+
+      '<span class="deg">'+fmtDeg(idx*30+deg)+' сид.</span></div>'+
+      '<p class="body">'+txt+'</p>';
+    if(w) h+='<div class="warn">'+w+'</div>';
+    return h+'</div>';
+  }
+
+  function parseTz(s){
+    s=(s||'').trim().replace(',','.').replace(/UTC|GMT/gi,'').trim();
+    if(s==='')return 0;
+    var sign=1;
+    if(s.charAt(0)==='+')s=s.slice(1);
+    else if(s.charAt(0)==='-'){sign=-1;s=s.slice(1);}
+    if(s.indexOf(':')>-1){var p=s.split(':');return sign*(parseInt(p[0],10)+(parseInt(p[1],10)||0)/60);}
+    var v=parseFloat(s);return isNaN(v)?0:sign*v;
+  }
+
+  /* =====================  НАСТРОЙКИ ЛИД-ФОРМЫ  =====================
+     LEAD_WEBHOOK — URL вебхука Salebot, куда уходит заявка (POST, JSON:
+                    name, email, birth_date, birth_time, city, tz_offset,
+                    moon_sign, lagna_sign, sun_sign, source).
+                    Берётся в Salebot → нужный бот/сценарий → «Внешний запрос»/
+                    «Приём данных по API». Пока строка пустая "" — заявки
+                    НИКУДА не уходят, только предупреждение в консоли браузера.
+     POLICY_URL   — ссылка на «Политику обработки персональных данных».
+                    Сейчас на vidhaya.ru политика — всплывающее окно Tilda без
+                    своего адреса. Рекомендация: вынести её отдельной страницей
+                    (напр. https://vidhaya.ru/politika) и поставить сюда её адрес.
+                    Пока стоит #popup:politics — Tilda иногда сам открывает попап.
+     GATE_ENABLED — true: перед полным разбором показываем форму «имя + e-mail».
+                    false: результат сразу, без формы.                          */
+  var LEAD_WEBHOOK = "";
+  var POLICY_URL   = "https://vidhaya.ru/#popup:politics";
+  var GATE_ENABLED = true;
+  /* =============================================================== */
+  function sendLead(p){
+    if(!LEAD_WEBHOOK){ if(window.console&&console.warn) console.warn('LEAD_WEBHOOK не задан — заявка ('+p.email+') не отправлена'); return; }
+    var body=JSON.stringify(p);
+    try{ if(navigator.sendBeacon && navigator.sendBeacon(LEAD_WEBHOOK, new Blob([body],{type:'text/plain;charset=UTF-8'}))) return; }catch(e){}
+    try{ fetch(LEAD_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,headers:{'Content-Type':'text/plain;charset=UTF-8'},body:body}); }catch(e){}
+  }
+
+  document.getElementById('form').addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var out=document.getElementById('out');
+    function err(msg){out.innerHTML='<div class="res"><p class="body">'+msg+'</p></div>';}
+
+    var Y=+bdYear.value, Mo=+bdMon.value, Da=+bdDay.value;
+    if(!Y||!Mo||!Da){err('Укажите дату рождения полностью — день, месяц и год.');return;}
+    var leap=(Y%4===0&&(Y%100!==0||Y%400===0));
+    var dim=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31][Mo-1];
+    if(Da>dim){err('В выбранном месяце столько дней нет — проверьте день рождения.');return;}
+    var unknown=noTime.checked;
+    var hh=unknown?12:(+btHour.value||0), mm=unknown?0:(+btMin.value||0);
+
+    var lat,lon,offInfo=null,tzLabel='';
+    if(selectedCity){
+      lat=selectedCity.lat; lon=selectedCity.lon;
+      var r=localToUT(selectedCity.tz, Y,Mo,Da,hh,mm);
+      if(!r){err('Не удалось определить часовой пояс для города. Укажите пояс вручную.');return;}
+      offInfo=r; tzLabel=selectedCity.name+' · UTC'+(r.off>=0?'+':'')+r.off;
+    } else {
+      lat=parseFloat((latEl.value||'').replace(',','.'));
+      lon=parseFloat((lonEl.value||'').replace(',','.'));
+      if(isNaN(lat)||isNaN(lon)){err('Выберите город из списка или укажите координаты вручную.');return;}
+      var offv=parseTz(tzEl.value);
+      offInfo={utHours:hh+mm/60-offv, off:offv};
+      tzLabel='вручную · UTC'+(offv>=0?'+':'')+offv;
+    }
+
+    try{ localStorage.setItem('vidhaya-signs',JSON.stringify({d:Da,mo:Mo,y:Y,h:unknown?null:+btHour.value,mi:unknown?null:+btMin.value,city:selectedCity?selectedCity.name:''})); }catch(e){}
+
+    var jdUT=julianDay(Y,Mo,Da,offInfo.utHours);
+    var jdTT=jdUT+deltaT(Y)/86400;
+    var Ttt=(jdTT-2451545.0)/36525;
+    var ay=ayanamsa(Ttt);
+
+    var mSid=norm(moonLon(Ttt)-ay), sSid=norm(sunLon(Ttt)-ay);
+    var mIdx=Math.floor(mSid/30), mDeg=mSid-mIdx*30;
+    var sIdx=Math.floor(sSid/30), sDeg=sSid-sIdx*30;
+
+    var html='<p class="hint" style="margin:0 0 14px">'+tzLabel+' · аянамша Лахири '+ay.toFixed(3)+'°</p>';
+
+    /* MOON */
+    var moonWarn=null;
+    if(unknown){
+      function mAt(h){var j=julianDay(Y,Mo,Da,h-offInfo.off);var Tt=(j+deltaT(Y)/86400-2451545.0)/36525;return Math.floor(norm(moonLon(Tt)-ayanamsa((j-2451545.0)/36525))/30);}
+      var i0=mAt(0.1), i1=mAt(23.9);
+      if(i0!==i1) moonWarn='В этот день Луна переходит из знака «'+RASI[i0][0]+'» в «'+RASI[i1][0]+'». Без точного времени рождения знак определить нельзя — показан расчёт на полдень.';
+    }
+    html+=card('Лунный','Чандра раши · эмоции и ум','moon',mIdx,mDeg,moonWarn);
+
+    /* LAGNA */
+    var lagnaName=null;
+    if(unknown){
+      html+='<div class="res lagna"><div class="top"><span class="glyph">☰</span><div><div class="kind">⇡  Лагна · восходящий знак</div><h3><span class="lead-word">восходящий</span> знак</h3></div></div><p class="body">Восходящий знак меняется примерно раз в 2 часа, поэтому без точного времени рождения его не посчитать. Уточните время — и расчёт появится.</p></div>';
+    } else if(Math.abs(lat)>66){
+      html+='<div class="res lagna"><div class="top"><span class="glyph">☰</span><div><div class="kind">⇡  Лагна · восходящий знак</div><h3><span class="lead-word">восходящий</span> знак</h3></div></div><p class="body">На широтах выше 66° формула восходящего знака ненадёжна. Нужен серверный расчёт.</p></div>';
+    } else {
+      var aSid=norm(ascendant(jdUT,lat,lon)-ay), aIdx=Math.floor(aSid/30), aDeg=aSid-aIdx*30;
+      lagnaName=RASI[aIdx][0];
+      html+=card('Восходящий','Лагна · тело и вектор жизни','lagna',aIdx,aDeg,null);
+    }
+
+    /* SUN */
+    html+=card('Солнечный','Сурья раши · воля и дух','sun',sIdx,sDeg,null);
+
+    function revealCta(){
+      document.getElementById('ctaBlock').hidden=false;
+      document.getElementById('ctaLead').textContent='Вы — '+FORMS.moon[GENDER[mIdx]]+' '+RASI[mIdx][0]+'. Это ваша точка отсчёта. Дальше — каждый день '+GEN[mIdx]+', весь месяц вперёд.';
+    }
+    function showFull(){
+      out.innerHTML=html;
+      revealCta();
+      out.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    var unlocked=false;
+    try{ unlocked=localStorage.getItem('vidhaya-unlocked')==='1'; }catch(e){}
+    if(!GATE_ENABLED || unlocked){ showFull(); return; }
+
+    var payload={
+      name:'', email:'',
+      birth_date: Y+'-'+(Mo<10?'0':'')+Mo+'-'+(Da<10?'0':'')+Da,
+      birth_time: unknown?null:((hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm),
+      city: selectedCity?selectedCity.name:(lat.toFixed(3)+', '+lon.toFixed(3)),
+      tz_offset: offInfo.off,
+      moon_sign: RASI[mIdx][0], moon_deg: fmtDeg(mDeg),
+      lagna_sign: lagnaName,
+      sun_sign: RASI[sIdx][0],
+      source: 'moonsign-calculator'
+    };
+
+    var pf={};
+    try{ pf=JSON.parse(localStorage.getItem('vidhaya-lead')||'{}'); }catch(e){}
+    function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+    out.innerHTML=
+      '<div class="teaser"><span class="tglyph">☾</span>'+
+      '<div class="tkind">Ваш знак по джйотишу</div>'+
+      '<div class="tname">Вы <span class="lead-word">'+FORMS.moon[GENDER[mIdx]]+'</span> '+RASI[mIdx][0]+'</div>'+
+      '<p class="tsub">'+RASI[mIdx][1]+' · '+fmtDeg(mDeg)+'</p>'+
+      '<p class="tdesc">'+SHORT_MOON[mIdx]+'</p></div>'+
+      '<div class="gate"><p class="gtitle">Откройте полный разбор</p>'+
+      '<p class="gtext">Разбор вашего лунного знака, восходящий и солнечный знаки, и ваши сильные и сложные дни этого месяца — пришлём на почту.</p>'+
+      '<form id="leadForm" autocomplete="on">'+
+      '<input type="text" id="lead_name" placeholder="Имя" autocomplete="name" value="'+esc(pf.name)+'">'+
+      '<input type="email" id="lead_email" placeholder="E-mail" autocomplete="email" inputmode="email" value="'+esc(pf.email)+'">'+
+      '<label class="gconsent"><input type="checkbox" id="lead_ok"> <span>Даю согласие на обработку моих персональных данных (имя, e-mail, дата, время и место рождения) для расчёта индивидуальных астрологических характеристик (лунный знак, лагна, солнечный знак) в соответствии с <a href="'+POLICY_URL+'" target="_blank" rel="noopener">политикой обработки данных</a>.</span></label>'+
+      '<div class="gerr" id="lead_err" hidden></div>'+
+      '<button type="submit" class="go">Открыть полный разбор</button>'+
+      '</form></div>';
+    revealCta();
+    out.scrollIntoView({behavior:'smooth',block:'start'});
+
+    document.getElementById('leadForm').addEventListener('submit',function(e2){
+      e2.preventDefault();
+      var nm=(document.getElementById('lead_name').value||'').trim();
+      var em=(document.getElementById('lead_email').value||'').trim();
+      var okc=document.getElementById('lead_ok').checked;
+      var ge=document.getElementById('lead_err');
+      function gerr(m){ ge.textContent=m; ge.hidden=false; }
+      if(nm.length<2){ gerr('Введите имя'); return; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ gerr('Проверьте e-mail'); return; }
+      if(!okc){ gerr('Нужно согласие на обработку данных'); return; }
+      payload.name=nm; payload.email=em;
+      try{ localStorage.setItem('vidhaya-lead',JSON.stringify({name:nm,email:em})); }catch(e){}
+      try{ localStorage.setItem('vidhaya-unlocked','1'); }catch(e){}
+      sendLead(payload);
+      showFull();
+    });
+  });
+})();
+</script>
+<script>
+/* авто-высота, когда страница встроена в Tilda через <iframe> */
+(function(){
+  function ph(){ try{ parent.postMessage({vdhHeight: document.documentElement.scrollHeight}, '*'); }catch(e){} }
+  window.addEventListener('load', ph);
+  window.addEventListener('resize', ph);
+  var out=document.getElementById('out');
+  if(out && window.MutationObserver){ new MutationObserver(ph).observe(out,{childList:true,subtree:true}); }
+  setInterval(ph, 1200);
+})();
+</script>
+</body>
+</html>
