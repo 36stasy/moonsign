@@ -210,6 +210,11 @@
   .cta .micro{position:relative;text-align:center;font-size:.79rem;color:#9997B0;margin:.9em 0 0;}
   .cta .alt{position:relative;text-align:center;font-size:.86rem;margin:.7em 0 0;color:#B7B6C9;}
   .cta .alt a{color:#B9BFE9;}
+  .cta.tg{background:linear-gradient(165deg,#2A2E4D 0%,#1B1F38 62%,#15192E 100%);margin-bottom:18px;}
+  .cta.tg h3{color:#EDE6D3;}
+  .cta.tg a.btn{background:linear-gradient(180deg,#EFE7D4,#D9C7A0);}
+  .cta.tg .tglink{color:#EFE7D4;text-decoration:underline;text-underline-offset:2px;}
+  .reslead{font-size:.95rem;color:var(--ink-soft);line-height:1.55;margin:0 0 18px;}
 
   details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 18px;margin:24px 0;}
   summary{cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:.78rem;letter-spacing:.06em;
@@ -309,10 +314,24 @@
       </div>
     </div>
     <button class="go" type="submit">Рассчитать мой лунный знак</button>
-    <p class="hint" id="formHint">Для восходящего знака нужно точное время: он меняется каждые ~2 часа.</p>
+    <p class="hint" id="formHint">Для восходящего знака нужно точное время: он меняется каждые ~2 часа. Дата и место рождения не покидают ваш браузер — расчёт идёт на вашем устройстве.</p>
   </form>
 
   <div id="out" aria-live="polite"></div>
+
+  <div class="cta tg" id="tgBlock" hidden>
+    <div class="cglow"></div>
+    <p class="ctaLead" id="tgLead"></p>
+    <h3>Ваш полный разбор — ждёт в Telegram</h3>
+    <p>Здесь, на странице, — короткий портрет знака. Всё остальное мы бережно пришлём вам в Telegram:</p>
+    <ul>
+      <li>развёрнутый разбор вашего лунного знака: в чём ваша сила, где уязвимость, что возвращает вам опору</li>
+      <li>ваши сильные и осторожные дни сентября 2026 — по числам, чтобы спланировать месяц уже сейчас</li>
+      <li>как читать календарь именно под ваш знак — с первого дня</li>
+    </ul>
+    <a class="btn" id="tgBtn" href="#" target="_blank" rel="noopener">Получить разбор в Telegram →</a>
+    <p class="micro">Бесплатно · откроется бот-помощник Vidhaya · ответьте ему — и разбор придёт сразу</p>
+  </div>
 
   <div class="cta" id="ctaBlock" hidden>
     <div class="cglow"></div>
@@ -605,6 +624,8 @@
     ["Козерог","Макара","♑"],["Водолей","Кумбха","♒"],["Рыбы","Мина","♓"]
   ];
   var GEN=["Овна","Тельца","Близнецов","Рака","Льва","Девы","Весов","Скорпиона","Стрельца","Козерога","Водолея","Рыб"];
+  /* латиница знака для ссылки в бота: t.me/<bot>?start=moonsign_<slug> */
+  var SLUG=["oven","telec","bliznecy","rak","lev","deva","vesy","skorpion","strelec","kozerog","vodoley","ryby"];
   /* род/число знака: 0 — муж., 1 — жен., 2 — мн. (для «лунный/лунная/лунные ...») */
   var GENDER=[0,0,2,0,0,1,2,0,0,0,0,2];
   var FORMS={moon:["лунный","лунная","лунные"],lagna:["восходящий","восходящая","восходящие"],sun:["солнечный","солнечная","солнечные"]};
@@ -685,38 +706,19 @@
     var v=parseFloat(s);return isNaN(v)?0:sign*v;
   }
 
-  /* =====================  НАСТРОЙКИ ЛИД-ФОРМЫ  =====================
-     LEAD_WEBHOOK — callback-API проекта Salebot «Клуб Видхая» (id 101120).
-                    Форма шлёт form-urlencoded POST с полями:
-                    client_id (=email), message ("moonsign_lead" — ключ, по
-                    которому в Salebot стартует цепочка), name, email,
-                    birth_date, birth_time, city, tz_offset, moon_sign,
-                    lagna_sign, sun_sign, source.
-                    Токен виден в исходнике публичной страницы. Если нужно —
-                    в Salebot → Настройки → Интеграции нажать «Сгенерировать»
-                    и заменить токен в адресе ниже.
-     LEAD_TRIGGER — ключевое слово, по которому Salebot запускает welcome-серию.
-     POLICY_URL   — ссылка на «Политику обработки персональных данных».
-                    Сейчас на vidhaya.ru политика — всплывающее окно Tilda без
-                    своего адреса. Рекомендация: вынести её отдельной страницей
-                    (напр. https://vidhaya.ru/politika) и поставить сюда её адрес.
-     GATE_ENABLED — true: перед полным разбором показываем форму «имя + e-mail».
-                    false: результат сразу, без формы.                          */
-  var LEAD_WEBHOOK = "https://chatter.salebot.pro/api/a483323bf03c79238ee0ab37a5afd6ba/callback";
-  var LEAD_TRIGGER = "moonsign_lead";
-  var POLICY_URL   = "https://vidhaya.ru/#popup:politics";
-  var GATE_ENABLED = true;
-  /* =============================================================== */
-  function sendLead(p){
-    if(!LEAD_WEBHOOK){ if(window.console&&console.warn) console.warn('LEAD_WEBHOOK не задан — заявка ('+p.email+') не отправлена'); return; }
-    p.client_id = p.email;
-    p.message = LEAD_TRIGGER;
-    /* form-urlencoded — «простой» тип: без CORS-preflight, Salebot callback его понимает */
-    var params = new URLSearchParams();
-    for (var k in p){ if(Object.prototype.hasOwnProperty.call(p,k) && p[k]!=null && p[k]!=='') params.append(k, p[k]); }
-    try{ if(navigator.sendBeacon && navigator.sendBeacon(LEAD_WEBHOOK, params)) return; }catch(e){}
-    try{ fetch(LEAD_WEBHOOK,{method:'POST',mode:'no-cors',keepalive:true,body:params}); }catch(e){}
-  }
+  /* =====================  TELEGRAM-ВОРОНКА  =====================
+     После расчёта человек уходит к боту @AndreyVidhayaClub_bot по ссылке
+       https://t.me/AndreyVidhayaClub_bot?start=moonsign_<slug знака>
+     Параметр start несёт лунный знак (moonsign_lev, moonsign_ryby …).
+     В Salebot отдельная изолированная ветка ловит start вида "moonsign_*":
+     приветствует по знаку, спрашивает e-mail и запускает серию писем
+     (Письмо 0 сразу, далее +1 / +3 / +5 / +8 дней). Существующий бот не
+     затрагивается — у ветки своя метка moonsign_calc.
+     Никакие персональные данные со страницы никуда не отправляются:
+     дата/время/место рождения используются только для расчёта в браузере. */
+  var BOT_USERNAME     = "AndreyVidhayaClub_bot";
+  var BOT_START_PREFIX = "moonsign_";
+  /* ============================================================ */
 
   document.getElementById('form').addEventListener('submit',function(ev){
     ev.preventDefault();
@@ -757,7 +759,8 @@
     var mIdx=Math.floor(mSid/30), mDeg=mSid-mIdx*30;
     var sIdx=Math.floor(sSid/30), sDeg=sSid-sIdx*30;
 
-    var html='<p class="hint" style="margin:0 0 14px">'+tzLabel+' · аянамша Лахири '+ay.toFixed(3)+'°</p>';
+    var html='<p class="hint" style="margin:0 0 14px">'+tzLabel+' · аянамша Лахири '+ay.toFixed(3)+'°</p>'+
+      '<p class="reslead">Ваш расклад по джйотишу — коротко. Полный разбор знака и прогноз на сентябрь заберёте в Telegram (кнопка ниже).</p>';
 
     /* MOON */
     var moonWarn=null;
@@ -784,68 +787,36 @@
     html+=card('Солнечный','Сурья раши · воля и дух','sun',sIdx,sDeg,null);
 
     function revealCta(){
+      var moonAdj=FORMS.moon[GENDER[mIdx]], moonName=RASI[mIdx][0];
+      var tgUrl='https://t.me/'+BOT_USERNAME+'?start='+BOT_START_PREFIX+SLUG[mIdx];
+
+      var tg=document.getElementById('tgBlock');
+      tg.hidden=false;
+      document.getElementById('tgLead').textContent='Вы — '+moonAdj+' '+moonName+'. Это ваша точка отсчёта — а полная картина ждёт вас в Telegram.';
+      var tgBtn=document.getElementById('tgBtn');
+      tgBtn.href=tgUrl;
+      tgBtn.onclick=function(){
+        setTimeout(function(){
+          tg.innerHTML='<div class="cglow"></div>'+
+            '<p class="ctaLead">Вы — '+moonAdj+' '+moonName+'</p>'+
+            '<h3>Готово — загляните в Telegram</h3>'+
+            '<p>Мы открыли бота-помощника Vidhaya. Ответьте ему любым сообщением — и в течение пары минут вам придёт:</p>'+
+            '<ul><li>полный разбор вашего лунного знака</li>'+
+            '<li>ваши сильные и осторожные дни сентября 2026</li>'+
+            '<li>как вести месяц по календарю под ваш знак</li></ul>'+
+            '<p class="micro">Бот не открылся или ничего не пришло — <a class="tglink" href="'+tgUrl+'" target="_blank" rel="noopener">откройте Telegram вручную</a> и напишите боту слово «знак».</p>';
+        },400);
+      };
+
       document.getElementById('ctaBlock').hidden=false;
-      document.getElementById('ctaLead').textContent='Вы — '+FORMS.moon[GENDER[mIdx]]+' '+RASI[mIdx][0]+'. Это ваша точка отсчёта. Дальше — каждый день '+GEN[mIdx]+', весь месяц вперёд.';
+      document.getElementById('ctaLead').textContent='Вы — '+moonAdj+' '+moonName+'. Дальше — каждый день '+GEN[mIdx]+', весь месяц вперёд.';
     }
     function showFull(){
       out.innerHTML=html;
       revealCta();
       out.scrollIntoView({behavior:'smooth',block:'start'});
     }
-
-    var unlocked=false;
-    try{ unlocked=localStorage.getItem('vidhaya-unlocked')==='1'; }catch(e){}
-    if(!GATE_ENABLED || unlocked){ showFull(); return; }
-
-    var payload={
-      name:'', email:'',
-      birth_date: Y+'-'+(Mo<10?'0':'')+Mo+'-'+(Da<10?'0':'')+Da,
-      birth_time: unknown?null:((hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm),
-      city: selectedCity?selectedCity.name:(lat.toFixed(3)+', '+lon.toFixed(3)),
-      tz_offset: offInfo.off,
-      moon_sign: RASI[mIdx][0], moon_deg: fmtDeg(mDeg),
-      lagna_sign: lagnaName,
-      sun_sign: RASI[sIdx][0],
-      source: 'moonsign-calculator'
-    };
-
-    var pf={};
-    try{ pf=JSON.parse(localStorage.getItem('vidhaya-lead')||'{}'); }catch(e){}
-    function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-    out.innerHTML=
-      '<div class="teaser"><span class="tglyph">☾</span>'+
-      '<div class="tkind">Ваш знак по джйотишу</div>'+
-      '<div class="tname">Вы <span class="lead-word">'+FORMS.moon[GENDER[mIdx]]+'</span> '+RASI[mIdx][0]+'</div>'+
-      '<p class="tsub">'+RASI[mIdx][1]+' · '+fmtDeg(mDeg)+'</p>'+
-      '<p class="tdesc">'+SHORT_MOON[mIdx]+'</p></div>'+
-      '<div class="gate"><p class="gtitle">Откройте полный разбор</p>'+
-      '<p class="gtext">Разбор вашего лунного знака, восходящий и солнечный знаки, и ваши сильные и сложные дни этого месяца — пришлём на почту.</p>'+
-      '<form id="leadForm" autocomplete="on">'+
-      '<input type="text" id="lead_name" placeholder="Имя" autocomplete="name" value="'+esc(pf.name)+'">'+
-      '<input type="email" id="lead_email" placeholder="E-mail" autocomplete="email" inputmode="email" value="'+esc(pf.email)+'">'+
-      '<label class="gconsent"><input type="checkbox" id="lead_ok"> <span>Даю согласие на обработку моих персональных данных (имя, e-mail, дата, время и место рождения) для расчёта индивидуальных астрологических характеристик (лунный знак, лагна, солнечный знак) в соответствии с <a href="'+POLICY_URL+'" target="_blank" rel="noopener">политикой обработки данных</a>.</span></label>'+
-      '<div class="gerr" id="lead_err" hidden></div>'+
-      '<button type="submit" class="go">Открыть полный разбор</button>'+
-      '</form></div>';
-    revealCta();
-    out.scrollIntoView({behavior:'smooth',block:'start'});
-
-    document.getElementById('leadForm').addEventListener('submit',function(e2){
-      e2.preventDefault();
-      var nm=(document.getElementById('lead_name').value||'').trim();
-      var em=(document.getElementById('lead_email').value||'').trim();
-      var okc=document.getElementById('lead_ok').checked;
-      var ge=document.getElementById('lead_err');
-      function gerr(m){ ge.textContent=m; ge.hidden=false; }
-      if(nm.length<2){ gerr('Введите имя'); return; }
-      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ gerr('Проверьте e-mail'); return; }
-      if(!okc){ gerr('Нужно согласие на обработку данных'); return; }
-      payload.name=nm; payload.email=em;
-      try{ localStorage.setItem('vidhaya-lead',JSON.stringify({name:nm,email:em})); }catch(e){}
-      try{ localStorage.setItem('vidhaya-unlocked','1'); }catch(e){}
-      sendLead(payload);
-      showFull();
-    });
+    showFull();
   });
 })();
 </script>
