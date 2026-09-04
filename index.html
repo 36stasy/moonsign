@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>VIDHAYA · расчёт лунного знака</title>
+<meta charset="utf-8">
+<title>Узнайте свой знак и свой день · Vidhaya</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -143,7 +143,10 @@
   .res .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
   .res .glyph{font-size:1.7rem;line-height:1;}
   .res .kind{font-family:'IBM Plex Mono',monospace;font-size:.66rem;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--ink-soft);}
+    text-transform:uppercase;color:var(--ink-soft);display:inline-flex;align-items:center;gap:8px;}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+    border-radius:999px;padding:2px 9px;background:var(--surface-2);color:var(--ink-soft);border:1px solid var(--line);}
+  .badge.main{background:var(--gold);color:var(--surface);border-color:var(--gold);}
   .res h3{margin:.15em 0 0;font-size:1.5rem;}
   .lead-word{color:var(--gold);font-weight:600;}
   .res .san{font-family:'IBM Plex Mono',monospace;font-size:.8rem;color:var(--ink-soft);}
@@ -186,6 +189,13 @@
   .signcard .nm{font-family:'Spectral',serif;font-size:1.15rem;font-weight:600;display:block;margin:.15em 0 .1em;}
   .signcard .tag{font-family:'IBM Plex Mono',monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-soft);}
   .signcard .d{font-size:.92rem;color:var(--ink-soft);line-height:1.55;margin:.7em 0 0;}
+  .elnote{font-size:.86rem;color:var(--ink-soft);margin:.6em 0 0;}
+  .elements{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 0;}
+  @media(max-width:520px){.elements{grid-template-columns:1fr;}}
+  .el{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .el .eic{font-size:1.3rem;line-height:1;}
+  .el .enm{font-family:'Spectral',serif;font-size:1.05rem;font-weight:600;display:block;margin:.35em 0 .3em;}
+  .el .ed{font-size:.86rem;color:var(--ink-soft);margin:0;}
 
   .cta{position:relative;overflow:hidden;border-radius:20px;padding:30px 28px;margin:30px 0;
     background:linear-gradient(165deg,#232A52 0%,#14182F 60%,#0F1126 100%);
@@ -214,6 +224,20 @@
   .cta.tg h3{color:#EDE6D3;}
   .cta.tg a.btn{background:linear-gradient(180deg,#EFE7D4,#D9C7A0);}
   .cta.tg .tglink{color:#EFE7D4;text-decoration:underline;text-underline-offset:2px;}
+  .shortcut{position:relative;border:1px solid var(--gold);border-radius:16px;background:var(--surface-2);
+    padding:24px 26px;margin:26px 0;}
+  .shortcut .sc-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.68rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--gold);}
+  .shortcut .sc-lead{font-family:'Spectral',serif;font-style:italic;font-size:1.06rem;color:var(--accent-ink);
+    margin:.55em 0 .45em;line-height:1.35;}
+  .shortcut .sc-lead:empty{display:none;}
+  .shortcut .sc-body{font-size:.93rem;color:var(--ink-soft);line-height:1.6;margin:0 0 1.3em;}
+  .shortcut .sc-btn{display:block;text-align:center;text-decoration:none;font-weight:600;font-size:1rem;
+    color:var(--surface);background:var(--accent);border-radius:11px;padding:14px 20px;
+    transition:filter .16s ease, transform .16s ease;}
+  .shortcut .sc-btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
+  .shortcut .sc-btn:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+  .shortcut .sc-micro{text-align:center;font-size:.78rem;color:var(--ink-soft);margin:.9em 0 0;}
   .reslead{font-size:.95rem;color:var(--ink-soft);line-height:1.55;margin:0 0 18px;}
 
   details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px 18px;margin:24px 0;}
@@ -272,7 +296,7 @@
       </svg>
       <div class="hero-text">
         <p class="brand">Vidhaya</p>
-        <h1>Расчёт <em>лунного</em> знака</h1>
+        <h1>Узнайте свой <em>знак</em> и свой <em>день</em> за минуту</h1>
         <p class="dek">Ведическая астрология. Введите город и дату рождения — часовой пояс и летнее время подставятся сами.</p>
       </div>
     </div>
@@ -313,7 +337,7 @@
         <div></div>
       </div>
     </div>
-    <button class="go" type="submit">Рассчитать мой лунный знак</button>
+    <button class="go" type="submit">Узнать, каким будет мой день</button>
     <p class="hint" id="formHint">Для восходящего знака нужно точное время: он меняется каждые ~2 часа. Дата и место рождения не покидают ваш браузер — расчёт идёт на вашем устройстве.</p>
   </form>
 
@@ -322,33 +346,24 @@
   <div class="cta tg" id="tgBlock" hidden>
     <div class="cglow"></div>
     <p class="ctaLead" id="tgLead"></p>
-    <h3>Ваш полный разбор — ждёт в Telegram</h3>
-    <p>Здесь, на странице, — короткий портрет знака. Всё остальное мы бережно пришлём вам в Telegram:</p>
+    <h3>Ваш день — подробно в Telegram</h3>
+    <p>Здесь, на странице, — коротко. Всё остальное мы бережно пришлём вам в Telegram:</p>
     <ul>
       <li>развёрнутый разбор вашего лунного знака: в чём ваша сила, где уязвимость, что возвращает вам опору</li>
-      <li>ваши сильные и осторожные дни сентября 2026 — по числам, чтобы спланировать месяц уже сейчас</li>
+      <li id="tgMonthDays">ваши сильные и осторожные дни этого месяца — по числам, чтобы спланировать месяц уже сейчас</li>
       <li>как читать календарь именно под ваш знак — с первого дня</li>
     </ul>
-    <a class="btn" id="tgBtn" href="#" target="_blank" rel="noopener">Получить разбор в Telegram →</a>
+    <a class="btn" id="tgBtn" href="#" target="_blank" rel="noopener">Получить свой день в Telegram →</a>
     <p class="micro">Бесплатно · откроется бот-помощник Vidhaya · ответьте ему — и разбор придёт сразу</p>
+    <p class="micro" id="tgAfter" hidden></p>
   </div>
 
-  <div class="cta" id="ctaBlock" hidden>
-    <div class="cglow"></div>
-    <p class="ctaLead" id="ctaLead"></p>
-    <h3>Знать свой знак — это ключ. Календарь — это дверь.</h3>
-    <p>Календарь Vidhaya — ваш лунный знак на каждый день месяца. Каждое утро вы открываете день и сразу видите:</p>
-    <ul>
-      <li>красный он или зелёный — стоит ли сегодня вообще что-то начинать</li>
-      <li>что можно, а что отложить: деньги, переговоры, поездки, лечение, крупные покупки</li>
-      <li>в какие часы дня действовать, а в какие — лучше подождать</li>
-      <li>прогноз на неделю по каждой сфере — деньги, работа, отношения, здоровье — отдельно для вашего знака, в закрытом канале</li>
-    </ul>
-    <p>Вы перестаёте решать вслепую. Каждый значимый шаг — как сверка погоды перед дорогой: посмотрели день, и пошли.</p>
-    <p class="proof">8 лет · тысячи людей планируют месяц по календарю</p>
-    <a class="btn" href="https://salebot.site/r/AndreyVidhayaClub_1" target="_blank" rel="noopener">Открыть свой календарь на месяц →</a>
-    <p class="micro">Подписка 990 ₽/мес · доступ сразу после оплаты · отмена в любой момент</p>
-    <p class="alt">Пока не готовы — <a href="https://t.me/astrologvidhaya" target="_blank" rel="noopener">бесплатный «совет дня» в Telegram</a></p>
+  <div class="shortcut" id="ctaBlock" hidden>
+    <span class="sc-eyebrow">Уже знаете, что вам это нужно?</span>
+    <p class="sc-lead" id="ctaLead"></p>
+    <p class="sc-body">Если Telegram и письма не нужны, а вы уже хотите вести каждый день по своему знаку — вот персональный календарь на месяц. Цвет каждого дня, что делать и что отложить, окна времени, прогноз недели по вашему знаку.</p>
+    <a class="sc-btn" href="https://salebot.site/r/AndreyVidhayaClub_1" target="_blank" rel="noopener">Открыть персональный календарь →</a>
+    <p class="sc-micro">990 ₽/мес · доступ сразу после оплаты · отмена в любой момент</p>
   </div>
 
   <div class="divider"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z" fill="currentColor"/></svg></div>
@@ -386,7 +401,7 @@
       <div class="signcard primary">
         <span class="ic">☾</span>
         <span class="nm">Лунный знак</span>
-        <span class="tag">Чандра раши · главный</span>
+        <span class="tag">Чандра раши · основа дня</span>
         <p class="d">Ваша эмоциональная природа: как вы чувствуете, что вам нужно для покоя, как восстанавливаетесь, как реагируете инстинктивно. Это «внутренний вы».</p>
       </div>
       <div class="signcard">
@@ -401,6 +416,15 @@
         <span class="tag">Сурья раши</span>
         <p class="d">Ядро, воля, дух, отношения с отцом и с властью. В джйотише важен, но на повседневность влияет меньше Луны.</p>
       </div>
+    </div>
+
+    <h3>Стихии знаков</h3>
+    <p class="elnote">Для ориентира — какой знак к какой стихии относится.</p>
+    <div class="elements">
+      <div class="el"><span class="eic">🔥</span><span class="enm">Огонь</span><p class="ed">Овен · Лев · Стрелец</p></div>
+      <div class="el"><span class="eic">🌍</span><span class="enm">Земля</span><p class="ed">Телец · Дева · Козерог</p></div>
+      <div class="el"><span class="eic">💨</span><span class="enm">Воздух</span><p class="ed">Близнецы · Весы · Водолей</p></div>
+      <div class="el"><span class="eic">💧</span><span class="enm">Вода</span><p class="ed">Рак · Скорпион · Рыбы</p></div>
     </div>
   </div>
 
@@ -623,6 +647,8 @@
     ["Весы","Тула","♎"],["Скорпион","Вришчика","♏"],["Стрелец","Дхану","♐"],
     ["Козерог","Макара","♑"],["Водолей","Кумбха","♒"],["Рыбы","Мина","♓"]
   ];
+  var ELEMENTS=['Огонь','Земля','Воздух','Вода'];
+  var ELEMENT_ICON=['🔥','🌍','💨','💧'];
   var GEN=["Овна","Тельца","Близнецов","Рака","Льва","Девы","Весов","Скорпиона","Стрельца","Козерога","Водолея","Рыб"];
   /* латиница знака для ссылки в бота: t.me/<bot>?start=moonsign_<slug> */
   var SLUG=["oven","telec","bliznecy","rak","lev","deva","vesy","skorpion","strelec","kozerog","vodoley","ryby"];
@@ -687,9 +713,11 @@
     var w = extraWarn || boundaryNote(deg);
     var mark = cls==='moon'?'☾':cls==='lagna'?'⇡':'☉';
     var adj = (FORMS[cls]||FORMS.moon)[GENDER[idx]];
+    var badge = cls==='moon' ? '<span class="badge main">основа дня</span>' : '<span class="badge">дополнительно</span>';
+    var elLine = cls==='moon' ? (' · '+ELEMENT_ICON[idx%4]+' стихия '+ELEMENTS[idx%4].toLowerCase()) : '';
     var h='<div class="res '+cls+'"><div class="top"><span class="glyph">'+r[2]+'</span>'+
-      '<div><div class="kind">'+mark+'  '+kindRest+'</div><h3>Вы <span class="lead-word">'+adj+'</span> '+r[0]+'</h3>'+
-      '<div class="san">'+r[1]+' · '+fmtDeg(deg)+' в знаке</div></div>'+
+      '<div><div class="kind">'+mark+'  '+kindRest+badge+'</div><h3>Вы <span class="lead-word">'+adj+'</span> '+r[0]+'</h3>'+
+      '<div class="san">'+r[1]+' · '+fmtDeg(deg)+' в знаке'+elLine+'</div></div>'+
       '<span class="deg">'+fmtDeg(idx*30+deg)+' сид.</span></div>'+
       '<p class="body">'+txt+'</p>';
     if(w) h+='<div class="warn">'+w+'</div>';
@@ -760,7 +788,7 @@
     var sIdx=Math.floor(sSid/30), sDeg=sSid-sIdx*30;
 
     var html='<p class="hint" style="margin:0 0 14px">'+tzLabel+' · аянамша Лахири '+ay.toFixed(3)+'°</p>'+
-      '<p class="reslead">Ваш расклад по джйотишу — коротко. Полный разбор знака и прогноз на сентябрь заберёте в Telegram (кнопка ниже).</p>';
+      '<p class="reslead">Коротко — ваша основа. Полный разбор и ваши дни месяца заберёте в Telegram (кнопка ниже).</p>';
 
     /* MOON */
     var moonWarn=null;
@@ -774,9 +802,9 @@
     /* LAGNA */
     var lagnaName=null;
     if(unknown){
-      html+='<div class="res lagna"><div class="top"><span class="glyph">☰</span><div><div class="kind">⇡  Лагна · восходящий знак</div><h3><span class="lead-word">восходящий</span> знак</h3></div></div><p class="body">Восходящий знак меняется примерно раз в 2 часа, поэтому без точного времени рождения его не посчитать. Уточните время — и расчёт появится.</p></div>';
+      html+='<div class="res lagna"><div class="top"><span class="glyph">☰</span><div><div class="kind">⇡  Лагна · восходящий знак<span class="badge">дополнительно</span></div><h3><span class="lead-word">восходящий</span> знак</h3></div></div><p class="body">Восходящий знак меняется примерно раз в 2 часа, поэтому без точного времени рождения его не посчитать. Уточните время — и расчёт появится.</p></div>';
     } else if(Math.abs(lat)>66){
-      html+='<div class="res lagna"><div class="top"><span class="glyph">☰</span><div><div class="kind">⇡  Лагна · восходящий знак</div><h3><span class="lead-word">восходящий</span> знак</h3></div></div><p class="body">На широтах выше 66° формула восходящего знака ненадёжна. Нужен серверный расчёт.</p></div>';
+      html+='<div class="res lagna"><div class="top"><span class="glyph">☰</span><div><div class="kind">⇡  Лагна · восходящий знак<span class="badge">дополнительно</span></div><h3><span class="lead-word">восходящий</span> знак</h3></div></div><p class="body">На широтах выше 66° формула восходящего знака ненадёжна. Нужен серверный расчёт.</p></div>';
     } else {
       var aSid=norm(ascendant(jdUT,lat,lon)-ay), aIdx=Math.floor(aSid/30), aDeg=aSid-aIdx*30;
       lagnaName=RASI[aIdx][0];
@@ -790,26 +818,27 @@
       var moonAdj=FORMS.moon[GENDER[mIdx]], moonName=RASI[mIdx][0];
       var tgUrl='https://t.me/'+BOT_USERNAME+'?start='+BOT_START_PREFIX+SLUG[mIdx];
 
+      var MONTHS_GEN=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+      var now=new Date(), monthDaysEl=document.getElementById('tgMonthDays');
+      if(monthDaysEl) monthDaysEl.textContent='ваши сильные и осторожные дни '+MONTHS_GEN[now.getMonth()]+' '+now.getFullYear()+' — по числам, чтобы спланировать месяц уже сейчас';
+
       var tg=document.getElementById('tgBlock');
       tg.hidden=false;
-      document.getElementById('tgLead').textContent='Вы — '+moonAdj+' '+moonName+'. Это ваша точка отсчёта — а полная картина ждёт вас в Telegram.';
+      document.getElementById('tgLead').textContent='Вы — '+moonAdj+' '+moonName+'. Это основа вашего дня — а полная картина ждёт в Telegram.';
       var tgBtn=document.getElementById('tgBtn');
       tgBtn.href=tgUrl;
       tgBtn.onclick=function(){
-        setTimeout(function(){
-          tg.innerHTML='<div class="cglow"></div>'+
-            '<p class="ctaLead">Вы — '+moonAdj+' '+moonName+'</p>'+
-            '<h3>Готово — загляните в Telegram</h3>'+
-            '<p>Мы открыли бота-помощника Vidhaya. Ответьте ему любым сообщением — и в течение пары минут вам придёт:</p>'+
-            '<ul><li>полный разбор вашего лунного знака</li>'+
-            '<li>ваши сильные и осторожные дни сентября 2026</li>'+
-            '<li>как вести месяц по календарю под ваш знак</li></ul>'+
-            '<p class="micro">Бот не открылся или ничего не пришло — <a class="tglink" href="'+tgUrl+'" target="_blank" rel="noopener">откройте Telegram вручную</a> и напишите боту слово «знак».</p>';
-        },400);
+        var after=document.getElementById('tgAfter');
+        if(after){
+          after.hidden=false;
+          after.innerHTML='Открываем бота Vidhaya со знаком «'+moonName+'». Не открылся? '+
+            '<a class="tglink" href="'+tgUrl+'" target="_blank" rel="noopener">Открыть Telegram вручную →</a> '+
+            'и напишите боту любое сообщение.';
+        }
       };
 
       document.getElementById('ctaBlock').hidden=false;
-      document.getElementById('ctaLead').textContent='Вы — '+moonAdj+' '+moonName+'. Дальше — каждый день '+GEN[mIdx]+', весь месяц вперёд.';
+      document.getElementById('ctaLead').textContent='Вы — '+moonAdj+' '+moonName+'. Календарь посчитает каждый ваш день на месяц вперёд.';
     }
     function showFull(){
       out.innerHTML=html;
@@ -831,5 +860,7 @@
   setInterval(ph, 1200);
 })();
 </script>
+
+
 </body>
 </html>
